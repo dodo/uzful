@@ -4,12 +4,14 @@ local awful = require("awful")
 local ipairs = ipairs
 local table = table
 local beautiful = nil
+local vicious = nil
 
 module("uzful.menu")
 
 
-function init(btfl)
+function init(btfl, vcs)
     beautiful = btfl
+    vicious = vcs
 end
 
 
@@ -25,3 +27,24 @@ function layouts(Layouts)
     end
     return awful.menu({ items = items })
 end
+
+
+function toggle_widgets ()
+    local widgets = {}
+    local show = true
+    local toggle = function ()
+        show = not show
+        if show then
+            for _, widget in ipairs(widgets) do
+                vicious.activate(widget)
+            end
+        else
+            for _, widget in ipairs(widgets) do
+                vicious.unregister(widget, true)
+            end
+        end
+    end
+    local visible = function () return show end
+    return { widgets = widgets, toggle = toggle, visible = visible }
+end
+
