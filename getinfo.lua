@@ -1,22 +1,8 @@
---
 --------------------------------------------------------------------------------
---         FILE:  getinfo.lua
---        USAGE:  ./getinfo.lua
---  DESCRIPTION:
---      OPTIONS:  ---
--- REQUIREMENTS:  ---
---         BUGS:  ---
---        NOTES:  ---
---       AUTHOR:   (), <>
---      COMPANY:
---      VERSION:  1.0
---      CREATED:  07.02.2011 02:09:01 CET
---     REVISION:  ---
+-- @author john
+-- @copyright 2011 https://github.com/tuxcodejohn
+-- @release v3.4-503-g4972a28
 --------------------------------------------------------------------------------
---
-
--- while debug: --
---require("vardump")
 
 local io = io
 local table = table
@@ -25,7 +11,8 @@ local assert = assert
 
 module("uzful.getinfo")
 
-
+--- Network Interfaces
+-- @return list of all network interfaces (without `lo`)
 function interfaces()
 	local f = io.popen("ls /sys/class/net", "r")
 	local out = assert(f:read("*a"))
@@ -41,7 +28,8 @@ function interfaces()
 	return ret
 end
 
-
+--- CPUs
+-- @return list of all cpus
 function local_cpus()
 	local cpu_lines = {}
 	local c = ""
@@ -56,18 +44,10 @@ function local_cpus()
 	return cpu_lines
 end
 
-
+--- CPU Count
+-- @return number of cpus
 function cpu_count()
     return #local_cpus()
 end
-
--- print "---------------------"
--- print (vardump(get_interfaces()))
--- print "---------------------"
---
--- print (vardump(john_num_cpus()))
--- print "---------------------"
-
---print (vardump(local_cpus()))
 
 

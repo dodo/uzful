@@ -1,11 +1,20 @@
-
+--------------------------------------------------------------------------------
+-- @author dodo
+-- @copyright 2011 https://github.com/dodo
+-- @release v3.4-503-g4972a28
+--------------------------------------------------------------------------------
 
 local type = type
 local pairs = pairs
 
 module("uzful.layout")
 
-
+--- Builds a layout from a table tree
+-- When inserted a function it returns the result without parameters.
+-- When given table has property layout it will instancate it add all list items from the table to it.
+-- Whe given table has properties it will try to invoke the `set_[key]` function of the layout.
+-- @param tree the table describing the layout (can be recursive)
+-- @return a layout or the result of the given function or just the input
 function build(tree)
     if type(tree) == "function" then
         return tree()

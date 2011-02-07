@@ -1,18 +1,25 @@
+--------------------------------------------------------------------------------
+-- @author john
+-- @copyright 2011 https://github.com/tuxcodejohn
+-- @release v3.4-503-g4972a28
+--------------------------------------------------------------------------------
 
-
+--- Table dumping
+-- @param data a table
+-- @return stringified table
 function vardump(data)
 	local function rvardump (rdata, erg,indent,key)
 
 		local linePrefix = ""
-		if key ~= nil then 
+		if key ~= nil then
 			linePrefix = string.format("[%s]",key)
 		end
 
 		if(indent == nil) then
 			indent = 0
-		else 
+		else
 			indent = indent +1
-			table.insert(erg,string.rep(" ",indent)) 
+			table.insert(erg,string.rep(" ",indent))
 		end
 
 		if type(rdata) == 'table' then
@@ -23,14 +30,14 @@ function vardump(data)
 			else
 				table.insert(erg ,"(metatable)")
 				rdata = mTable
-			end		
+			end
 			table.insert(erg,"\n")
 			for tableKey, tableValue in pairs(rdata) do
 				rvardump(tableValue, erg,indent,tableKey)
 			end
 		elseif  type(rdata) == 'function'   or
-			type(rdata)	== 'thread' or 
-			type(rdata)	== 'userdata' or 
+			type(rdata)	== 'thread' or
+			type(rdata)	== 'userdata' or
 			rdata		== nil  then
 
 			table.insert(erg,tostring(rdata))
@@ -43,7 +50,7 @@ function vardump(data)
 
 	local erg= {}
 	rvardump(data,erg)
-	
+
 	return table.concat(erg)
 end
 

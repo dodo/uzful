@@ -1,3 +1,8 @@
+--------------------------------------------------------------------------------
+-- @author dodo
+-- @copyright 2011 https://github.com/dodo
+-- @release v3.4-503-g4972a28
+--------------------------------------------------------------------------------
 
 local Wibox = require("wibox")
 local awful = require("awful")
@@ -10,12 +15,20 @@ local getinfo = require("uzful.getinfo")
 
 module("uzful.widget")
 
-
+--- uzful.widget initiator
+-- Needs to be executed once if `uztful.menu.netgraphs` and `uzful.menu.cpugraphs` should work.
+-- @param vcs the required vicious library
 function init(vcs)
     vicious = vcs
 end
 
-
+--- wibox helper
+-- Just a wrapper for a nicer interface for `wibox`
+-- @param args any wibox args plus screen, visible and widget
+-- @param args.screen when given `wibox.screen` will be set
+-- @param args.visible when given `wibox.visible` will be set
+-- @param args.widget when given `wibox:set_widget` will be invoked
+-- @return wibox object
 function wibox(args)
     local w = Wibox(args)
     w.screen = args.screen or 1
@@ -26,7 +39,11 @@ function wibox(args)
     return w
 end
 
-
+--- widget property setter
+-- Any given property will invoke `widget:set_[property_key]([property_value])`.
+-- @param widget the widget to be filled with properties
+-- @param properties a table with the properties
+-- @return the given widget
 function set_properties(widget, properties)
     local fun = nil
     for name, property in pairs(properties) do
@@ -38,7 +55,23 @@ function set_properties(widget, properties)
     return widget
 end
 
-
+--- fency CPU Graphs for all CPUs
+-- @param args table with all relevant properties
+-- @param args.label_height <i>(needed) </i>  the height for a single `wibox.widget.textbox`
+-- @param args.load <i>(optional) </i> displays load as text (replaces '$1', '$2' and '$3' with values) in big graphs layout (only available when `args.big` is given)
+-- @param args.small <i>(optional) </i> generates a small cpurgaph with all cpu usage combined when table given
+-- @param args.small.width <i>(need when `args.small` given) </i> width of small cpu graph
+-- @param args.small.height <i>(need when `args.small` given) </i> height of small cpu graph
+-- @param args.small.fgcolor <i>/optional when `args.small` given) </i> foreground color of small cpu graph
+-- @param args.small.bgcolor <i>/optional when `args.small` given) </i> background color of small cpu graph
+-- @param args.big <i>(optional) </i> generates a big cpurgaph for each cpu core when table given
+-- @param args.big.width <i>(need when `args.big` given) </i> width of a single big cpu graph
+-- @param args.big.height <i>(need when `args.big` given) </i> height of a single big cpu graph
+-- @param args.big.fgcolor <i>/optional when `args.big` given) </i> foreground color of big cpu graphs
+-- @param args.big.bgcolor <i>/optional when `args.big` given) </i> background color of big cpu graphs
+-- @param args.fgcolor <i>(optional) </i> default value of `args.small.fgcolor` and `args.big.fgcolor`
+-- @param args.bgcolor <i>(optional) </i> default value of `args.small.bgcolor` and `args.big.bgcolor`
+-- @return a table  with this properties: small <i>(when `args.small` given)</i> (with properties: widget, width, height), big <i>(wher `args.big` given)</i> (with properties: layout, widgets, width, height), load <i>(when `args.load` given)</i>
 function cpugraphs(args)
     local ret = {}
     for _, size in ipairs({"small", "big"}) do
@@ -101,7 +134,24 @@ function cpugraphs(args)
     return ret
 end
 
-
+--- fency Net Graphs for all network interfaces
+-- @param args table with all relevant properties
+-- @param args.normal <i>(default: "$1") </i> display every interface name as text (replaces '$1' with interface name) in big graphs layout (only available when `args.big` is given)
+-- @param args.hightlight <i>(default: "$1") </i> display selected interface name as text (replaces '$1' with interface name) in big graphs layout (only available when `args.big` is given)
+-- @param args.label_height <i>(needed) </i>  the height for a single `wibox.widget.textbox`
+-- @param args.small <i>(optional) </i> generates a small cpurgaph with all cpu usage combined when table given
+-- @param args.small.width <i>(need when `args.small` given) </i> width of small cpu graph
+-- @param args.small.height <i>(need when `args.small` given) </i> height of small cpu graph
+-- @param args.small.fgcolor <i>/optional when `args.small` given) </i> foreground color of small cpu graph
+-- @param args.small.bgcolor <i>/optional when `args.small` given) </i> background color of small cpu graph
+-- @param args.big <i>(optional) </i> generates a big cpurgaph for each cpu core when table given
+-- @param args.big.width <i>(need when `args.big` given) </i> width of a single big cpu graph
+-- @param args.big.height <i>(need when `args.big` given) </i> height of a single big cpu graph
+-- @param args.big.fgcolor <i>/optional when `args.big` given) </i> foreground color of big cpu graphs
+-- @param args.big.bgcolor <i>/optional when `args.big` given) </i> background color of big cpu graphs
+-- @param args.fgcolor <i>(optional) </i> default value of `args.small.fgcolor` and `args.big.fgcolor`
+-- @param args.bgcolor <i>(optional) </i> default value of `args.small.bgcolor` and `args.big.bgcolor`
+-- @return a table  with this properties: small <i>(when `args.small` given)</i> (with properties: layout, widgets, width, height), big <i>(wher `args.big` given)</i> (with properties: layout, widgets, width, height)
 function netgraphs(args)
     local ret = {}
     for _, size in ipairs({"small", "big"}) do
