@@ -58,21 +58,21 @@ end
 --- fency CPU Graphs for all CPUs
 -- @param args table with all relevant properties
 -- @param args.label_height <i>(needed) </i>  the height for a single `wibox.widget.textbox`
--- @param args.load <i>(optional) </i> generates average load text when table given
--- @param args.load.text <i>(optional) </i> sets load text (replaces '$1', '$2' and '$3' with values) in big graphs layout (only available when `args.load` is given)
+-- @param args.load <i>(optional) </i> generates average load text when table given (only available when `args.big` is given)
+-- @param args.load.text <i>(default "$1 $2 $3") </i> sets load text (replaces '$1', '$2' and '$3' with values) in big graphs layout
 -- @param args.load.interval <i>(needed when `args.load` given) </i> sets vicious update interval for load text
 -- @param args.small <i>(optional) </i> generates a small cpurgaph with all cpu usage combined when table given
 -- @param args.small.interval <i>(needed when `args.small` given) </i> sets vicious update interval for small cpu graph
 -- @param args.small.width <i>(need when `args.small` given) </i> width of small cpu graph
 -- @param args.small.height <i>(need when `args.small` given) </i> height of small cpu graph
--- @param args.small.fgcolor <i>/optional when `args.small` given) </i> foreground color of small cpu graph
--- @param args.small.bgcolor <i>/optional when `args.small` given) </i> background color of small cpu graph
+-- @param args.small.fgcolor <i>(optional when `args.small` given) </i> foreground color of small cpu graph
+-- @param args.small.bgcolor <i>(optional when `args.small` given) </i> background color of small cpu graph
 -- @param args.big <i>(optional) </i> generates a big cpurgaph for each cpu core when table given
 -- @param args.big.interval <i>(needed when `args.big` given) </i> sets vicious update interval for big cpu graphs
 -- @param args.big.width <i>(need when `args.big` given) </i> width of a single big cpu graph
 -- @param args.big.height <i>(need when `args.big` given) </i> height of a single big cpu graph
--- @param args.big.fgcolor <i>/optional when `args.big` given) </i> foreground color of big cpu graphs
--- @param args.big.bgcolor <i>/optional when `args.big` given) </i> background color of big cpu graphs
+-- @param args.big.fgcolor <i>(optional when `args.big` given) </i> foreground color of big cpu graphs
+-- @param args.big.bgcolor <i>(optional when `args.big` given) </i> background color of big cpu graphs
 -- @param args.fgcolor <i>(optional) </i> default value of `args.small.fgcolor` and `args.big.fgcolor`
 -- @param args.bgcolor <i>(optional) </i> default value of `args.small.bgcolor` and `args.big.bgcolor`
 -- @return a table  with this properties: small <i>(when `args.small` given)</i> (with properties: widget, width, height), big <i>(wher `args.big` given)</i> (with properties: layout, widgets, width, height), load <i>(when `args.load` given)</i>
@@ -150,14 +150,14 @@ end
 -- @param args.small.interval <i>(needed when `args.small` given) </i> sets vicious update interval for small net graphs
 -- @param args.small.width <i>(need when `args.small` given) </i> width of small cpu graph
 -- @param args.small.height <i>(need when `args.small` given) </i> height of small cpu graph
--- @param args.small.fgcolor <i>/optional when `args.small` given) </i> foreground color of small cpu graph
--- @param args.small.bgcolor <i>/optional when `args.small` given) </i> background color of small cpu graph
+-- @param args.small.fgcolor <i>(optional when `args.small` given) </i> foreground color of small cpu graph
+-- @param args.small.bgcolor <i>(optional when `args.small` given) </i> background color of small cpu graph
 -- @param args.big <i>(optional) </i> generates a big cpurgaph for each cpu core when table given
 -- @param args.big.interval <i>(needed when `args.big` given) </i> sets vicious update interval for big net graphs
 -- @param args.big.width <i>(need when `args.big` given) </i> width of a single big cpu graph
 -- @param args.big.height <i>(need when `args.big` given) </i> height of a single big cpu graph
--- @param args.big.fgcolor <i>/optional when `args.big` given) </i> foreground color of big cpu graphs
--- @param args.big.bgcolor <i>/optional when `args.big` given) </i> background color of big cpu graphs
+-- @param args.big.fgcolor <i>(optional when `args.big` given) </i> foreground color of big cpu graphs
+-- @param args.big.bgcolor <i>(optional when `args.big` given) </i> background color of big cpu graphs
 -- @param args.fgcolor <i>(optional) </i> default value of `args.small.fgcolor` and `args.big.fgcolor`
 -- @param args.bgcolor <i>(optional) </i> default value of `args.small.bgcolor` and `args.big.bgcolor`
 -- @return a table  with this properties: small <i>(when `args.small` given)</i> (with properties: layout, widgets, width, height), big <i>(wher `args.big` given)</i> (with properties: layout, widgets, width, height), switch <i>(when `args.big` and `args.small` are given)</i>
