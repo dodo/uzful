@@ -1,5 +1,6 @@
 
 
+local awful = require("awful")
 local Wibox = require("wibox")
 
 module("uzful.util")
@@ -24,4 +25,8 @@ patch = {
         end
     end,
     }
+
+function change_volume(delta)
+    awful.util.spawn("amixer -q set Master " .. delta)
+end
 
