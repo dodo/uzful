@@ -36,6 +36,69 @@ function set_properties(widget, properties)
 end
 
 
+function cpugraphs(args)
+    local ret = {}
+    for _, size in ipairs({"small", "big"}) do
+        if args[size] then
+            for _, ground in ipairs({"fg", "bg"}) do
+                args[size][ground .. "color"] =
+                    args[size][ground .. "color"] or
+                          args[ground .. "color"]
+            end
+        end
+    end
+
+    local small = nil
+    if args.small then
+        small = awful.widget.graph(
+            { width = args.small.width, height = args.small.height })
+        set_properties(small, {
+            border_color = nil,
+            color = args.small.fgcolor,
+            background_color = args.small.bgcolor })
+        vicious.register(small, vicious.widgets.cpu, "$1", 1)
+        ret.small = {
+            widget = small,
+            height = args.small.height,
+            width = args.small.width }
+    end
+
+
+    if args.big then
+        local height = 0
+        local layout = Wibox.layout.fixed.vertical()
+        if args.load then
+            ret.load = Wibox.widget.textbox()
+            vicious.register(ret.load, vicious.widgets.uptime,
+                vicious.helpers.format(args.load, {"$4", "$5", "$6"}), 20)
+            layout:add(ret.load)
+            height = height + args.label_height
+        end
+
+        local big = {}
+        local big_geometry = {width = args.big.width, height = args.big.height}
+        local cpucounter = getinfo.cpu_count()
+        for i=1,cpucounter do
+            big[i] = awful.widget.graph(big_geometry)
+            set_properties(big[i], {
+                border_color = nil,
+                color = args.big.fgcolor,
+                background_color = args.big.bgcolor })
+            vicious.register(big[i], vicious.widgets.cpu, "$"..(i+1), 1)
+            layout:add(big[i])
+        end
+        height = height + cpucounter * args.big.height
+        ret.big = {
+            layout = layout,
+            widgets = big,
+            height = height,
+            width = args.big.width}
+    end
+
+    return ret
+end
+
+
 function netgraphs(args)
     local ret = {}
     for _, size in ipairs({"small", "big"}) do
