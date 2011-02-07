@@ -48,21 +48,17 @@ function john_num_cpus()
 end
 
 
+
+
+
 function local_cpus()
-
 	local cpu_lines = {}
-
-	-- Get CPU stats
 	for line in io.lines("/proc/stat") do
-		if string.find(line, "^cpu%d+") then
-			cpu_lines[#cpu_lines+1] = {}
-
-			for i in string.gmatch(line, "[%s]+([%d]+)") do
-				table.insert(cpu_lines[#cpu_lines], i)
-			end
+		local c = string.find(line, "^(cpu%d)+") 
+		if c then
+			table.insert(cpu_lines,c)
 		end
 	end
-	return cpu_lines
 end
 
 
