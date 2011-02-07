@@ -51,6 +51,10 @@ as infobox you can use somthing like this:
             ontop = true, visible = false })
 
 
+## Documentation
+
+    luadoc -d doc/ *.lua
+
 ## TODO
 
 if you have some nice feature in rc or in mind, let me know about it.
