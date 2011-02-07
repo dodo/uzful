@@ -58,8 +58,9 @@ end
 --- fency CPU Graphs for all CPUs
 -- @param args table with all relevant properties
 -- @param args.label_height <i>(needed) </i>  the height for a single `wibox.widget.textbox`
--- @param args.load <i>(optional) </i> displays load as text (replaces '$1', '$2' and '$3' with values) in big graphs layout (only available when `args.big` is given)
--- @param args.load_interval <i>(needed when `args.load` given) </i> sets vicious update interval for load text
+-- @param args.load <i>(optional) </i> generates average load text when table given
+-- @param args.load.text <i>(optional) </i> sets load text (replaces '$1', '$2' and '$3' with values) in big graphs layout (only available when `args.load` is given)
+-- @param args.load.interval <i>(needed when `args.load` given) </i> sets vicious update interval for load text
 -- @param args.small <i>(optional) </i> generates a small cpurgaph with all cpu usage combined when table given
 -- @param args.small.interval <i>(needed when `args.small` given) </i> sets vicious update interval for small cpu graph
 -- @param args.small.width <i>(need when `args.small` given) </i> width of small cpu graph
@@ -109,8 +110,8 @@ function cpugraphs(args)
         if args.load then
             ret.load = Wibox.widget.textbox()
             vicious.register(ret.load, vicious.widgets.uptime,
-                vicious.helpers.format(args.load, {"$4", "$5", "$6"}),
-                    args.load_interval)
+                vicious.helpers.format(args.load.text or "$1 $2 $3",
+                    {"$4", "$5", "$6"}), args.load.interval)
             layout:add(ret.load)
             height = height + args.label_height
         end
