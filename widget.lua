@@ -89,9 +89,9 @@ function netgraphs(args)
     end
 
     local if_text = function (interface)
-        return (args.big and args.small and interface == cur) and (
-            ' <span size="x-small"><b>' .. interface .. '</b></span>') or (
-            ' <span color="#666666" size="x-small">' .. interface .. '</span>')
+        return (args.big and args.small and interface == cur) and
+            vicious.helpers.format(args.highlight or "$1", { interface }) or
+            vicious.helpers.format(args.normal    or "$1", { interface })
     end
 
     if args.big then
