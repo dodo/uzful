@@ -42,9 +42,32 @@ function interfaces()
 end
 
 
+function local_cpus()
+	local cpu_lines = {}
+	local c = ""
+	local v = ""
+	for line in io.lines("/proc/stat") do
+		v= nil
+		v, c = string.find(line, "^(cpu%d+)")
+		if v then
+			table.insert(cpu_lines, string.sub(line,v,c))
+		end
+	end
+	return cpu_lines
+end
 
 
---print (vardump(get_interfaces()))
+function cpu_count()
+    return #local_cpus()
+end
 
+-- print "---------------------"
+-- print (vardump(get_interfaces()))
+-- print "---------------------"
+--
+-- print (vardump(john_num_cpus()))
+-- print "---------------------"
+
+--print (vardump(local_cpus()))
 
 
