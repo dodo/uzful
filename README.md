@@ -50,6 +50,10 @@ as infobox you can use somthing like this:
             x = screen[s].geometry.width - mynetgraphs.big.width,
             ontop = true, visible = false })
 
+## Install
+
+    cd $XDG_CONFIG_HOME/awesome/
+    git clone git://github.com/dodo/uzful.git
 
 ## Documentation
 
