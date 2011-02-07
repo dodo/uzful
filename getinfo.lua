@@ -53,12 +53,16 @@ end
 
 function local_cpus()
 	local cpu_lines = {}
+	local c = ""
+	local v = ""
 	for line in io.lines("/proc/stat") do
-		local c = string.find(line, "^(cpu%d)+") 
-		if c then
-			table.insert(cpu_lines,c)
+		v= nil
+		v, c = string.find(line, "^(cpu%d+)")
+		if v then
+			table.insert(cpu_lines, string.sub(line,v,c))
 		end
 	end
+	return cpu_lines
 end
 
 
