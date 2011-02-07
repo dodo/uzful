@@ -20,6 +20,9 @@ function wibox(args)
     local w = Wibox(args)
     w.screen = args.screen or 1
     w.visible = args.visible or false
+    if args.widget then
+        w:set_widget(args.widget)
+    end
     return w
 end
 
