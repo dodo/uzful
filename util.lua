@@ -26,6 +26,21 @@ patch = {
     end,
     }
 
+--- vicious threshold generator
+-- generates an object that can be passed to `vicious.register`
+-- @param threshold number between 0 and 1
+-- @param on when set_value invoked and value &gt; threshold then this function is called
+-- @param off when set_value invoked and value &lt; threshold then this function is called
+-- @return a table with property: set_value (similar to widget:set_value)
+function threshold(threshold, on, off)
+    local old_value = -1
+    return { set_value = function (_, value)
+            if value == old_value then return end
+            if value < threshold then off(value) else on(value) end
+            old_value = value
+        end }
+end
+
 --- Change system volume
 -- uses <b>obvious</b>
 -- use it like this for example:
