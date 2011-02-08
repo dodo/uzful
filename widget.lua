@@ -150,12 +150,14 @@ local default_net_colors = { fg = {down = "#00FF00", up = "#FF0000"},
 -- @param args.hightlight <i>(default: "$1") </i> display selected interface name as text (replaces '$1' with interface name) in big graphs layout (only available when `args.big` is given)
 -- @param args.label_height <i>(needed) </i>  the height for a single `wibox.widget.textbox`
 -- @param args.small <i>(optional) </i> generates a small cpurgaph with all cpu usage combined when table given
+-- @param args.small.scale <i>(optional when `args.small` given, default: "kb") </i> sets vicious network scale for small net graphs
 -- @param args.small.interval <i>(needed when `args.small` given) </i> sets vicious update interval for small net graphs
 -- @param args.small.width <i>(need when `args.small` given) </i> width of small cpu graph
 -- @param args.small.height <i>(need when `args.small` given) </i> height of small cpu graph
 -- @param args.small.fgcolor <i>(optional when `args.small` given) </i> foreground color of small cpu graph
 -- @param args.small.bgcolor <i>(optional when `args.small` given) </i> background color of small cpu graph
 -- @param args.big <i>(optional) </i> generates a big cpurgaph for each cpu core when table given
+-- @param args.big.scale <i>(optional when `args.big` given, default: "mb") </i> sets vicious network scale for big net graphs
 -- @param args.big.interval <i>(needed when `args.big` given) </i> sets vicious update interval for big net graphs
 -- @param args.big.width <i>(need when `args.big` given) </i> width of a single big cpu graph
 -- @param args.big.height <i>(need when `args.big` given) </i> height of a single big cpu graph
@@ -188,6 +190,7 @@ function netgraphs(args)
     local small = nil
     local small_layout = {}
     if args.small then
+        args.small.scale = args.small.scale or "kb"
         local small_widgets = {}
         local small_geometry={width=args.small.width,height=args.small.height/2}
         for _, interface in ipairs(network_interfaces) do
@@ -199,7 +202,8 @@ function netgraphs(args)
                     color = args.small[typ .. '_fgcolor'],
                     background_color = args.small[typ .. '_bgcolor'] })
                 vicious.register(g, vicious.widgets.net,
-                    "${" ..interface.. " " ..typ.. "_kb}", args.small.interval)
+                    "${" ..interface.. " " ..typ.. "_" ..args.small.scale.. "}",
+                    args.small.interval)
                 table.insert(small_widgets, g)
                 l:add(g)
             end
@@ -223,6 +227,7 @@ function netgraphs(args)
     end
 
     if args.big then
+        args.big.scale = args.big.scale or "mb"
         local labels = {}
 
         ret.switch = function () end
@@ -255,7 +260,8 @@ function netgraphs(args)
                     color = args.big[typ .. '_fgcolor'],
                     background_color = args.big[typ .. '_bgcolor'] })
                 vicious.register(g, vicious.widgets.net,
-                    "${" .. interface .. " " .. typ .. "_kb}",args.big.interval)
+                    "${" ..interface.. " " ..typ.. "_" ..args.big.scale.. "}",
+                    args.big.interval)
                 height = height + big_geometry.height
                 table.insert(big_widgets, g)
                 big:add(g)
