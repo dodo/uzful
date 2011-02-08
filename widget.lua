@@ -55,6 +55,40 @@ function set_properties(widget, properties)
     return widget
 end
 
+--- Progressbar and Image Glue
+-- @param args table with all relevant properties
+-- @param args.x <i>(optional) </i> progressbar x offset
+-- @param args.y <i>(optional) </i> progressbar y offset
+-- @param args.width progressbar width
+-- @param args.width progressbar height
+-- @param args.image <i>(optional) </i> image to be displayed
+-- @return `wibox.widget.imagebox` with property progress with is a `awful.widget.progressbar`
+function progressimage(args)
+    local ret = Wibox.widget.imagebox()
+    ret.progress = awful.widget.progressbar(args)
+
+    ret.progress.x = args.x or 0
+    ret.progress.y = args.y or 0
+    if args.image then
+        ret:set_image(args.image)
+    end
+
+    local draw_image = ret.draw
+    local draw_progress = ret.progress.draw
+    ret.draw = function (box, wibox, cr, width, height)
+        draw_image(box, wibox, cr, width, height)
+        width  = args.width  or width
+        height = args.height or height
+        cr:save()
+        cr:translate(ret.progress.x, ret.progress.y)
+        draw_progress(ret.progress, wibox, cr, width, height)
+        cr:restore()
+    end
+
+    return ret
+end
+
+
 local default_cpu_colors = { fg = "#FFFFFF", bg = "#000000" }
 --- fency CPU Graphs for all CPUs
 -- @param args table with all relevant properties
