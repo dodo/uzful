@@ -4,7 +4,8 @@
 -- @release v3.4-503-g4972a28
 --------------------------------------------------------------------------------
 
-local awful = require("awful")
+local obvious = {}
+local require = require
 
 module("uzful.util")
 
@@ -26,14 +27,33 @@ patch = {
     }
 
 --- Change system volume
+-- uses <b>obvious</b>
 -- use it like this for example:
 -- <code>
--- awful.key({ modkey            }, "<",      function () uzful.util.change_volume("1%-") end),
--- awful.key({ modkey, "Shift"   }, "<",      function () uzful.util.change_volume("1%+") end),
+-- volume = uzful.util.volume("Master")<br/>
+-- awful.key({ modkey            }, "<",      function () volume.lower() end),<br/>
+-- awful.key({ modkey, "Shift"   }, "<",      function () volume.raise() end),<br/>
 -- </code>
--- thanks to <a href="https://github.com/twobit">twobit</a>.
--- @param delta The volume delta to change in percentage (e.g. "1%+")
-function change_volume(delta)
-    awful.util.spawn("amixer -q set Master " .. delta)
+-- @param channel the audio channel you want control
+-- @param typ <i>(default: "alsa")</i> obvious has to modules for volume control: alsa and freebsd
+-- @param cardid <i>(optional when typ == "alsa", default: 0)</i> specify sound card id
+-- @return a table with lower and raise function (both take optional percentage as param (default: 1))
+function volume(channel, typ, cardid)
+    typ = typ or "alsa"
+    cardid = cardid or 0
+    if obvious[typ] == nil then
+        obvious[typ] = require("obvious.volume_" .. typ)
+        if typ == "alsa" then
+            local org = obvious[typ]
+            obvious[typ] = {
+                lower = function (ch, v) org.lower(cardid, ch, v) end,
+                raise = function (ch, v) org.raise(cardid, ch, v) end,
+            }
+        end
+    end
+    return {
+        lower = function (perc) obvious[typ].lower(channel, perc) end,
+        raise = function (perc) obvious[typ].raise(channel, perc) end,
+    }
 end
 
