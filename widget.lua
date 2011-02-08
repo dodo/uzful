@@ -55,6 +55,7 @@ function set_properties(widget, properties)
     return widget
 end
 
+local default_cpu_colors = { fg = "#FFFFFF", bg = "#000000" }
 --- fency CPU Graphs for all CPUs
 -- @param args table with all relevant properties
 -- @param args.label_height <i>(needed) </i>  the height for a single `wibox.widget.textbox`
@@ -80,10 +81,10 @@ function cpugraphs(args)
     local ret = {}
     for _, size in ipairs({"small", "big"}) do
         if args[size] then
-            for _, ground in ipairs({"fg", "bg"}) do
+            for ground, col in pairs(default_cpu_colors) do
                 args[size][ground .. "color"] =
                     args[size][ground .. "color"] or
-                          args[ground .. "color"]
+                          args[ground .. "color"] or col
             end
         end
     end
@@ -140,6 +141,8 @@ function cpugraphs(args)
     return ret
 end
 
+local default_net_colors = { fg = {down = "#00FF00", up = "#FF0000"},
+                             bg = {down = "#002000", up = "#200000"} }
 --- fency Net Graphs for all network interfaces
 -- To enable interface switch use: mynetgraphs.small.layout:connect_signal("button::release", mynetgraphs.switch)
 -- @param args table with all relevant properties
@@ -166,10 +169,10 @@ function netgraphs(args)
     for _, size in ipairs({"small", "big"}) do
         if args[size] then
             for _, typ in ipairs({"down", "up"}) do
-                for _, ground in ipairs({"fg", "bg"}) do
+                for ground, col in pairs(default_net_colors) do
                     args[size][typ .. '_' .. ground .. "color"] =
                         args[size][typ .. '_' .. ground .. "color"] or
-                            args[typ .. '_' .. ground .. "color"]
+                            args[typ .. '_' .. ground .. "color"]   or col[typ]
                 end
             end
         end
