@@ -180,6 +180,7 @@ local default_net_colors = { fg = {down = "#00FF00", up = "#FF0000"},
 --- fency Net Graphs for all network interfaces
 -- To enable interface switch use: mynetgraphs.small.layout:connect_signal("button::release", mynetgraphs.switch)
 -- @param args table with all relevant properties
+-- @param args.default <i>(optional) </i> specify the selected interface
 -- @param args.normal <i>(default: "$1") </i> display every interface name as text (replaces '$1' with interface name) in big graphs layout (only available when `args.big` is given)
 -- @param args.hightlight <i>(default: "$1") </i> display selected interface name as text (replaces '$1' with interface name) in big graphs layout (only available when `args.big` is given)
 -- @param args.label_height <i>(needed) </i>  the height for a single `wibox.widget.textbox`
@@ -219,7 +220,7 @@ function netgraphs(args)
     for k, v in ipairs(network_interfaces) do
         interface_cache[v] = k
     end
-    local cur = network_interfaces[1]
+    local cur = args.default or network_interfaces[1]
 
     local small = nil
     local small_layout = {}
