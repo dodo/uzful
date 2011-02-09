@@ -6,21 +6,23 @@
 
 local obvious = {}
 local require = require
+local vicious = require("vicious")
 
 module("uzful.util")
 
 patch = {
     --- Enables always vicious.cache for all registered vicious widgets
     -- It overrides `vicious.register`.
-    -- @param vicious The required vicious library
-    vicious = function (vicious)
+    -- enable auto caching
+    vicious = function ()
         local cache = {}
         local register = vicious.register
         vicious.register = function (widget, wtype, format, interval, warg)
-            if cache[wtype] == nil then
-                cache[wtype] = 1
+             cache[wtype] = cache[wtype] or 0
+            if cache[wtype] == 1 then
                 vicious.cache(wtype)
             end
+            cache[wtype] = cache[wtype] + 1
             register(widget, wtype, format, interval, warg)
         end
     end,

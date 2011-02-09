@@ -9,18 +9,12 @@ local awful = require("awful")
 local pairs = pairs
 local table = table
 local ipairs = ipairs
-local vicious = nil
+local vicious = require("vicious")
 local getinfo = require("uzful.getinfo")
 
 
 module("uzful.widget")
 
---- uzful.widget initiator
--- Needs to be executed once if `uztful.menu.netgraphs` and `uzful.menu.cpugraphs` should work.
--- @param vcs the required vicious library
-function init(vcs)
-    vicious = vcs
-end
 
 --- wibox helper
 -- Just a wrapper for a nicer interface for `wibox`

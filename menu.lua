@@ -7,32 +7,25 @@
 local awful = require("awful")
 local ipairs = ipairs
 local table = table
-local beautiful = nil
-local vicious = nil
+local beautiful = require("beautiful")
+local vicious = require("vicious")
 
 module("uzful.menu")
 
---- uzful.menu initiator
--- Needs to be executed once if `uztful.menu.layouts` and `uzful.menu.toggle_widgets` should work.
--- @param btfl the required beautiful library
--- @param vcs the required vicious library
-function init(btfl, vcs)
-    beautiful = btfl
-    vicious = vcs
-end
 
 --- Layout Menu
 -- Generates a `awful.menu` with all layouts (names and icons).
 -- @param layouts list of layouts the user wants to use.
 function layouts(Layouts)
     local items = {}
+    local theme = beautiful.get()
     for _, layout in ipairs(Layouts) do
         local layout_name = awful.layout.getname(layout)
         table.insert(items, { layout_name,
             function ()
                 awful.layout.set(layout)
             end,
-            beautiful["layout_" .. layout_name] })
+            theme["layout_" .. layout_name] })
     end
     return awful.menu({ items = items })
 end
