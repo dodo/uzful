@@ -22,14 +22,15 @@ cleaner awesome/rc.lua
 
 ## Usage
 
+After `require("beautiful")` and `require("vicious")`:
+
     require('uzful')
-    uzful.widget.init(vicious)
-    uzful.menu.init(beautiful, vicious)
-    uzful.util.patch.vicious(vicious)
+    uzful.util.patch.vicious() -- enable auto caching
 
 use netgraphs for instance:
 
-    mynetgraphs = uzful.widget.netgraphs({ label_height = 13,
+    mynetgraphs = uzful.widget.netgraphs({
+        label_height = 13, default = "wlan0",
         up_fgcolor = "#D00003", up_bgcolor = "#200000",
         down_fgcolor = "#95D043", down_bgcolor = "#002000",
         highlight = ' <span size="x-small"><b>$1</b></span>',
@@ -50,6 +51,29 @@ as infobox you can use somthing like this:
             width = mynetgraphs.big.width,
             x = screen[s].geometry.width - mynetgraphs.big.width,
             ontop = true, visible = false })
+
+or maybe a battery progressbar in an image:
+
+    mybat = uzful.widget.progressimage(
+        { x = 3, y = 4, width = 3, height = 7, image = theme.battery })
+    uzful.widget.set_properties(mybat.progress, {
+        ticks = true, ticks_gap = 1,  ticks_size = 1,
+        vertical = true, background_color = theme.bg_normal,
+        border_color = nil, color = "#FFFFFF" })
+    vicious.register(mybat.progress, vicious.widgets.bat, "$2", 45, "BAT0")
+    -- notifications
+    mycritbat = uzful.util.threshold(0.2,
+        function ()
+            mybat.progress:set_background_color(theme.bg_normal)
+        end,
+        function ()
+            mybat.progress:set_background_color("#8C0000")
+            naughty.notify({
+                preset = naughty.config.presets.critical,
+                title = "Critical Battery Charge",
+                text = "only " .. (val*100) .. "% remaining." })
+        end)
+    vicious.register(mycritbat, vicious.widgets.bat, "$2", 60, "BAT0")
 
 ## Install
 
