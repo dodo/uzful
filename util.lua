@@ -28,6 +28,24 @@ patch = {
     end,
     }
 
+listen = {
+    --- vicious listener generator
+    -- generates an object that van be passed to `vicious.register`
+    -- @param slot specify the way you want to get your data. should be smth like 'text' (string), or 'value' (number)
+    -- @param callback the callback function wich will be invoked. can get the value
+    vicious = function (slot, callback)
+        local old_value = "…"
+        slot = "text" == slot and "markup" or slot
+        ret = {}
+        ret["set_" .. slot] = function (_, value)
+                if value == old_value then return end
+                old_value = value
+                callback(value)
+            end
+        return ret
+    end,
+    }
+
 --- vicious threshold generator
 -- generates an object that can be passed to `vicious.register`
 -- @param threshold number between 0 and 1
@@ -36,11 +54,9 @@ patch = {
 -- @return a table with property: set_value (similar to widget:set_value)
 function threshold(threshold, on, off)
     local old_value = -1
-    return { set_value = function (_, value)
-            if value == old_value then return end
+    return listen.vicious("value", function (value)
             if value < threshold then off(value) else on(value) end
-            old_value = value
-        end }
+        end )
 end
 
 --- Change system volume
