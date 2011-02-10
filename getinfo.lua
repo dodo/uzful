@@ -19,9 +19,8 @@ function interfaces()
 	f:close()
 	local ret = {}
 	for w in string.gfind(out, "%w+") do
-		if not ( string.find(w,"lo") or
-		 string.find(w, "dummy%d+") )
-		 then
+	  	f,emsg,enum = io.open("/sys/class/net/".. w .. "/device" ,"r")
+		if (enum ~= 2 ) then 
 			 table.insert(ret, w)
 		 end
 	end
