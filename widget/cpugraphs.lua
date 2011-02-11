@@ -21,7 +21,6 @@ module("uzful.widget.cpugraphs")
 local default_cpu_colors = { fg = "#FFFFFF", bg = "#000000" }
 --- fency CPU Graphs for all CPUs
 -- @param args table with all relevant properties
--- @param args.label_height <i>(needed) </i>  the height for a single `wibox.widget.textbox`
 -- @param args.load <i>(optional) </i> generates average load text when table given (only available when `args.big` is given)
 -- @param args.load.text <i>(default "$1 $2 $3") </i> sets load text (replaces '$1', '$2' and '$3' with values) in big graphs layout
 -- @param args.load.interval <i>(needed when `args.load` given) </i> sets vicious update interval for load text
@@ -77,7 +76,8 @@ function new(args)
                 vicious.helpers.format(args.load.text or "$1 $2 $3",
                     {"$4", "$5", "$6"}), args.load.interval)
             layout:add(ret.load)
-            height = height + args.label_height
+            local _, h = ret.load:fit(-1, -1)
+            height = height + h
         end
 
         local big = {}

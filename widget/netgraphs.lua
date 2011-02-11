@@ -27,7 +27,6 @@ local default_net_colors = { fg = {down = "#00FF00", up = "#FF0000"},
 -- @param args.default <i>(optional) </i> specify the selected interface
 -- @param args.normal <i>(default: "$1") </i> display every interface name as text (replaces '$1' with interface name) in big graphs layout (only available when `args.big` is given)
 -- @param args.hightlight <i>(default: "$1") </i> display selected interface name as text (replaces '$1' with interface name) in big graphs layout (only available when `args.big` is given)
--- @param args.label_height <i>(needed) </i>  the height for a single `wibox.widget.textbox`
 -- @param args.small <i>(optional) </i> generates a small cpurgaph with all cpu usage combined when table given
 -- @param args.small.scale <i>(optional when `args.small` given, default: "kb") </i> sets vicious network scale for small net graphs
 -- @param args.small.interval <i>(needed when `args.small` given) </i> sets vicious update interval for small net graphs
@@ -129,7 +128,8 @@ function new(args)
         for i, interface in ipairs(network_interfaces) do
             local label = wibox.widget.textbox()
             label:set_markup(if_text(interface))
-            height = height + args.label_height
+            local _, h = label:fit(-1, -1)
+            height = height + h
             big:add(label)
             labels[interface] = label
             for _, typ in ipairs({"down", "up"}) do
