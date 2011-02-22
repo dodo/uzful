@@ -5,6 +5,7 @@
 --------------------------------------------------------------------------------
 
 local wibox = require("wibox")
+local util = require("awful.util")
 local menu = require("uzful.menu.popup")
 local naughty = require("naughty")
 local vicious = require("vicious")
@@ -22,15 +23,14 @@ module("uzful.notifications")
 data = {}
 
 function patch()
-    local notify = naughty.notify
+    local notification = naughty.notify
     naughty.notify = function (args)
-        notify(args)
-        update(args)
+        update(notification(args), args)
     end
 end
 
 
-function update(args)
+function update(notification, args)
     args = args or {}
     local preset = args.preset or naughty.config.default_preset or {}
     local icon = args.icon or preset.icon
@@ -43,11 +43,13 @@ function update(args)
         border_color = args.border_color or preset.border_color or
                        theme.bg_focus or '#535d6c',
     }
-    table.insert(data, {
+    local new_data = {
+        notification = notification,
         screen = screen,
-        color = color,
+        theme = color,
         text = text,
-        icon = icon })
+        icon = icon }
+    table.insert(data, new_data)
 
     local updates = {}
     for wid, conf in pairs(widgets) do
@@ -55,7 +57,9 @@ function update(args)
             updates[wid] = wid
         end
     end
-    for _,wid in pairs(updates) do wid:add({text=text,theme=color,icon=icon})end
+    for _,wid in pairs(updates) do
+        wid:add(new_data)
+    end
 end
 
 
@@ -64,9 +68,16 @@ function add(wid, args)
     if conf == nil or not conf.visible then return end
     wid.number = wid.number + 1
     wid.text:set_markup(vicious.helpers.format(conf.format, { wid.number }))
-    local item = wid.menu:add({
-        theme = args.theme or {},
-        args.text or "", function ()  end, args.icon } )
+    local item
+    local mouse_fun = function ()
+        args.notification.die()
+        wid.menu:delete(item)
+        wid:show()
+        local i = util.table.hasitem(args)
+        if i then  table.remove(data, i)  end
+    end
+    item = wid.menu:add({
+        theme = args.theme or {}, args.text or "", mouse_fun, args.icon } )
     if conf.menu_visible then
         wid:show(conf.menu_args)
     end
@@ -173,7 +184,7 @@ function new(screen, args)
 
     for _, v in pairs(data) do
         if v.screen == screen then
-            ret:add({ text = v.text, theme = v.color, icon = v.icon })
+            ret:add(v)
         end
     end
 
