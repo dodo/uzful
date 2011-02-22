@@ -175,9 +175,10 @@ end
 
 
 local function item_leave(menu, num)
-    if num > 0 then
-        menu.items[num].wibox:set_fg(menu.theme.fg_normal)
-        menu.items[num].wibox:set_bg(menu.theme.bg_normal)
+    if num ~= nil then
+        local item = menu.items[num]
+        item.wibox:set_fg(item.theme.fg_normal)
+        item.wibox:set_bg(item.theme.bg_normal)
     end
 end
 
@@ -189,8 +190,9 @@ local function item_enter(menu, num, mouse_event)
         item_leave(menu, menu.sel)
     end
 
-    menu.items[num].wibox:set_fg(menu.theme.fg_focus)
-    menu.items[num].wibox:set_bg(menu.theme.bg_focus)
+    local item = menu.items[num]
+    item.wibox:set_fg(item.theme.fg_focus)
+    item.wibox:set_bg(item.theme.bg_focus)
     menu.sel = num
     cur_menu = menu
 
@@ -271,9 +273,9 @@ end
 
 function hide(menu)
     -- Remove items from screen
-    for i = 1, #menu.items do
-        item_leave(menu, i)
-        menu.items[i].wibox.screen = nil
+    for k, _ in pairs(menu.items) do
+        item_leave(menu, k)
+        menu.items[k].wibox.screen = nil
     end
     if menu.active_child then
         menu.active_child:hide()
@@ -395,7 +397,11 @@ function add(parent, item, num)
     box.height = h + 2
     box.ontop = true
 
-    return {
+    if parent.height < box.height then
+        parent.height = box.height
+    end
+
+    local ret = {
         icon = iconbox,
         label = label,
         wibox = box,
@@ -403,6 +409,8 @@ function add(parent, item, num)
         akey = key,
         cmd = item[2],
         returned_value = item[1] }
+    parent.items[num] = ret
+    return ret
 end
 
 
@@ -443,17 +451,9 @@ function new(args, parent, num)
     ret.add = add
 
     -- Create items
-    for i, v in ipairs(args) do
-        table.insert(ret.items, ret:add(v, i))
-    end
+    for i, v in ipairs(args) do  ret:add(v, i)  end
     if args.items then
-        for i, v in ipairs(args.items) do
-            table.insert(ret.items, ret:add(v, i))
-        end
-    end
-
-    if #ret.items > 0 and ret.height < ret.items[1].wibox.height then
-        ret.height = ret.items[1].wibox.height
+        for k, v in pairs(args.items) do  ret:add(v, k)  end
     end
 
     return ret
