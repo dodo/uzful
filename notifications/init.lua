@@ -63,12 +63,13 @@ function add(wid, args)
     local conf = widgets[wid]
     if conf == nil or not conf.visible then return end
     wid.number = wid.number + 1
-    conf.counter = conf.counter + 1
     wid.text:set_markup(vicious.helpers.format(conf.format, { wid.number }))
     local item = wid.menu:add({
         theme = args.theme or {},
-        args.text or "", function ()  end, args.icon },
-        conf.counter)
+        args.text or "", function ()  end, args.icon } )
+    if conf.menu_visible then
+        wid:show(conf.menu_args)
+    end
 end
 
 
@@ -77,6 +78,7 @@ function show(wid, args)
     if conf == nil then return end
     if conf.visible then
         conf.menu_visible = true
+        conf.menu_args = args
         wid.menu:show(args)
     end
 end
@@ -121,6 +123,9 @@ function disable(wid)
         end
     end
     wid:hide()
+    for i = 1, #wid.menu.items do
+        wid.menu:delete(conf.menu.len + 1)
+    end
     data = new
     wid.number = 0
     conf.visible = false
@@ -147,14 +152,13 @@ function new(screen, args)
     local conf = {
         disabled = vicious.helpers.format(args.disabled or "$1", { "⤫" }),
         format = args.text or "$1",
-        counter = 0,
         menu = args.menu or {},
         menu_visible = false,
         visible = args.visible ~= nil and args.visible,
         screen = screen }
 
     local ret = {
-        menu = menu(),
+        menu = menu(conf.menu),
         text = wibox.widget.textbox(),
         toggle_menu = toggle_menu,
         disable = disable,
@@ -165,7 +169,7 @@ function new(screen, args)
         hide = hide,
         add = add }
     widgets[ret] = conf
-
+    conf.menu.len = #ret.menu.items
 
     for _, v in pairs(data) do
         if v.screen == screen then
