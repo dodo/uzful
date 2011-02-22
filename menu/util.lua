@@ -10,7 +10,7 @@ local table = table
 local beautiful = require("beautiful")
 local vicious = require("vicious")
 
-module("uzful.menu")
+module("uzful.menu.util")
 
 
 --- Layout Menu
