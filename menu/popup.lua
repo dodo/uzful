@@ -436,6 +436,9 @@ end
 
 
 function delete(menu, num)
+    if type(num) == "table" then
+        num = util.table.hasitem(menu.items, num)
+    end
     local item = menu.items[num]
     if not item then return end
     item.wibox:disconnect_signal("mouse::enter", item.mouse)
