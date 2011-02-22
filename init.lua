@@ -9,6 +9,7 @@ require("uzful.menu")
 require("uzful.layout")
 require("uzful.widget")
 require("uzful.getinfo")
+require("uzful.notifications")
 
 
 module("uzful")
