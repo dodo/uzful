@@ -30,6 +30,13 @@ local capi = {
 module("uzful.menu.popup")
 
 
+table.update = function (t, set)
+    for k, v in pairs(set) do
+        t[k] = v
+    end
+end
+
+
 local cur_menu
 
 --- Key bindings for menu navigation.
@@ -84,7 +91,11 @@ local function set_coords(menu, screen_idx, m_coords)
         menu.width = menu.parent.width
         menu.height = menu.parent.height
 
-        local p_w = i_h * (menu.num - 1)
+        local num = 0
+        if menu.parent then
+            num = util.table.hasitem(menu.parent.child, menu) - 1
+        end
+        local p_w = i_h * num
         local m_w = menu.width - menu.theme.border_width
 
         menu.y = menu.parent.y + p_w + m_h > screen_h and
@@ -109,11 +120,11 @@ end
 
 
 local function check_access_key(menu, key)
-   for i, item in pairs(menu.items) do
+   for i, item in ipairs(menu.items) do
       if item.akey == key then
-          item_enter(menu, i)
-          exec(menu, i)
-          return
+            item_enter(menu, i)
+            exec(menu, i)
+            return
       end
    end
    if menu.parent then
@@ -155,7 +166,7 @@ local function exec(menu, num, mouse_event)
             return
         end
         if not menu.child[num] then
-            menu.child[num] = new(cmd, menu, num)
+            menu.child[num] = new(cmd, menu)
         end
 
         if menu.active_child then
@@ -184,7 +195,7 @@ end
 
 
 local function item_enter(menu, num, mouse_event)
-    if menu.sel == num then
+    if num == nil or menu.sel == num then
         return
     elseif menu.sel then
         item_leave(menu, menu.sel)
@@ -247,7 +258,7 @@ function show(menu, args)
     local keygrabber = args.keygrabber or false
     local coords = args.coords or nil
     set_coords(menu, screen_index, coords)
-    for num, item in pairs(menu.items) do
+    for num, item in ipairs(menu.items) do
         local wibox = item.wibox
         wibox.width = menu.width
         wibox.height = menu.height
@@ -273,9 +284,9 @@ end
 
 function hide(menu)
     -- Remove items from screen
-    for k, _ in pairs(menu.items) do
-        item_leave(menu, k)
-        menu.items[k].wibox.screen = nil
+    for i = 1, #menu.items do
+        item_leave(menu, i)
+        menu.items[i].wibox.screen = nil
     end
     if menu.active_child then
         menu.active_child:hide()
@@ -301,8 +312,9 @@ function toggle(menu, args)
 end
 
 
-function add(parent, item, num)
+function add(parent, item, index)
     if not item then return end
+    local ret = {}
     local theme = load_theme(item.theme or {}, parent.theme)
     local box = wibox({
         fg = theme.fg_normal,
@@ -314,13 +326,16 @@ function add(parent, item, num)
     local bindings = util.table.join(
         button({}, 3, function () parent:hide() end),
         button({}, 1, function ()
+            local num = util.table.hasitem(parent.items, ret)
             item_enter(parent, num)
             exec(parent, num)
         end ))
     box:buttons(bindings)
-    box:connect_signal("mouse::enter", function ()
+    local mouse_fun = function ()
+        local num = util.table.hasitem(parent.items, ret)
         item_enter(parent, num, true)
-    end)
+    end
+    box:connect_signal("mouse::enter", mouse_fun)
     -- Create the item label widget
     local label = wibox.widget.textbox()
     local key = ''
@@ -401,20 +416,46 @@ function add(parent, item, num)
         parent.height = box.height
     end
 
-    local ret = {
+    table.update(ret, {
         icon = iconbox,
         label = label,
         wibox = box,
         theme = theme,
         akey = key,
         cmd = item[2],
-        returned_value = item[1] }
-    parent.items[num] = ret
+        mouse = mouse_fun,
+        returned_value = item[1] })
+    if index and parent.items[index] then
+        -- parent:delete(index) FIXME
+        parent.items[index] = ret
+    else
+        table.insert(parent.items, ret)
+    end
     return ret
 end
 
 
-function new(args, parent, num)
+function delete(menu, num)
+    local item = menu.items[num]
+    if not item then return end
+    item.wibox:disconnect_signal("mouse::enter", item.mouse)
+    item.wibox.screen = nil
+    table.remove(menu.items, num)
+    if menu.sel == num then
+        item_leave(menu, menu.sel)
+        menu.sel = nil
+    end
+    if menu.child[num] then
+         menu.child[num]:hide()
+        if menu.active_child == menu.child[num] then
+            menu.active_child = nil
+        end
+        table.remove(menu.child, num)
+    end
+end
+
+
+function new(args, parent)
     args = args or {}
     local theme = args.theme or {}
     local parent_theme = parent and parent.theme
@@ -428,8 +469,7 @@ function new(args, parent, num)
         child = {},
         items = {},
         parent = parent,
-        theme = load_theme(theme, parent_theme),
-        num = num or 1 }
+        theme = load_theme(theme, parent_theme) }
 
     if parent then
         ret.auto_expand = parent.auto_expand
@@ -445,15 +485,16 @@ function new(args, parent, num)
     if type(ret.width)  ~= 'number' then ret.width  = tonumber(ret.width)  end
 
     ret.get_root = get_root
+    ret.delete = delete
     ret.toggle = toggle
     ret.hide = hide
     ret.show = show
     ret.add = add
 
     -- Create items
-    for i, v in ipairs(args) do  ret:add(v, i)  end
+    for i, v in ipairs(args) do  ret:add(v)  end
     if args.items then
-        for k, v in pairs(args.items) do  ret:add(v, k)  end
+        for i, v in pairs(args.items) do  ret:add(v)  end
     end
 
     return ret
