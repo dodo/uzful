@@ -16,7 +16,7 @@ local pairs = pairs
 local table = table
 local widgets = {}
 
-local print = print
+
 module("uzful.notifications")
 
 
@@ -67,17 +67,70 @@ function add(wid, args)
     local conf = widgets[wid]
     if conf == nil or not conf.visible then return end
     wid.number = wid.number + 1
-    wid.text:set_markup(vicious.helpers.format(conf.format, { wid.number }))
+
+    local setMarkup = function ()
+        wid.text:set_markup(vicious.helpers.format(conf.format, { wid.number }))
+    end
+    setMarkup()
     local item
     local mouse_fun = function ()
+        wid.number = wid.number - 1
+        setMarkup()
         args.notification.die()
         wid.menu:delete(item)
         wid:show()
         local i = util.table.hasitem(args)
         if i then  table.remove(data, i)  end
     end
-    item = wid.menu:add({
-        theme = args.theme or {}, args.text or "", mouse_fun, args.icon } )
+
+    local more = {"more …", {} }
+    local new_item = {
+            theme = args.theme or {}, args.text or "", mouse_fun, args.icon }
+    local just_add = function (menu)
+        item = menu:add(new_item)
+    end
+    local add_to_table
+    add_to_table = function (t)
+        if #t >= wid.max then
+            if #t == wid.max then
+                table.insert(t, more)
+            end
+            add_to_table(t[wid.max + 1][2])
+        else
+            table.insert(t, new_item)
+        end
+    end
+    local add_to_menu
+    add_to_menu = function (menu)
+        if #menu.items >= wid.max then
+            if #menu.items == wid.max then
+                menu:add(more)
+            end
+            local cmd = menu.items[wid.max + 1].cmd
+            if #cmd >= wid.max then
+                local child = menu.child[wid.max + 1]
+                if child then
+                    add_to_menu(child)
+                else
+                    add_to_table(cmd)
+                end
+            else
+                item = menu:add_sub(wid.max + 1, new_item)
+            end
+        else
+            just_add(menu)
+        end
+    end
+
+    if not wid.max or wid.max == 0 then
+        just_add(wid.menu)
+    else
+        if #wid.menu.items >= wid.max then
+            add_to_menu(wid.menu)
+        else
+            just_add(wid.menu)
+        end
+    end
     if conf.menu_visible then
         wid:show(conf.menu_args)
     end
@@ -169,6 +222,7 @@ function new(screen, args)
         screen = screen }
 
     local ret = {
+        max = args.max or 0,
         menu = menu(conf.menu),
         text = wibox.widget.textbox(),
         toggle_menu = toggle_menu,
