@@ -435,6 +435,22 @@ function add(parent, item, index)
 end
 
 
+function add_sub(menu, index, item, subindex)
+    if not index or not item then return end
+    local subitem = menu.items[index]
+    if not subitem or type(subitem.cmd) ~= "table" then return end
+    if subindex then
+        subitem.cmd[subindex] = item
+    else
+        table.insert(subitem.cmd, item)
+    end
+    local child = menu.child[index]
+    if child then
+        child:add(item, subindex)
+    end
+end
+
+
 function delete(menu, num)
     if type(num) == "table" then
         num = util.table.hasitem(menu.items, num)
@@ -488,6 +504,7 @@ function new(args, parent)
     if type(ret.width)  ~= 'number' then ret.width  = tonumber(ret.width)  end
 
     ret.get_root = get_root
+    ret.add_sub = add_sub
     ret.delete = delete
     ret.toggle = toggle
     ret.hide = hide
