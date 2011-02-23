@@ -71,9 +71,9 @@ local function load_theme(a, b)
                     fallback.menu_bg_normal or fallback.bg_normal
     ret.submenu_icon= a.submenu_icon or b.menu_submenu_icon or b.submenu_icon or
                        fallback.menu_submenu_icon or fallback.submenu_icon
-    ret.menu_height = a.height or b.menu_height or
+    ret.menu_height = a.menu_height or b.menu_height or
                       fallback.menu_height or 16
-    ret.menu_width = a.width or b.menu_width or
+    ret.menu_width = a.menu_width or b.menu_width or
                      fallback.menu_width or 100
     return ret
 end
