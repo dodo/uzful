@@ -63,7 +63,15 @@ function new(args)
     for k, v in ipairs(network_interfaces) do
         interface_cache[v] = k
     end
-    local cur = args.default or network_interfaces[1]
+
+    local cur = network_interfaces[1]
+    local i = 1
+    while network_interfaces[i] do
+      if args.default == network_interfaces[i] then
+	cur = args.default
+	break
+      end
+    end
 
     local small = nil
     local small_layout = {}
