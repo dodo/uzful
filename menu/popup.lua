@@ -185,9 +185,7 @@ local function exec(menu, num, mouse_event)
         if not visible then
             get_root(menu):hide()
         else
-            menu:show({
-                keygrabber = menu.keygrabber,
-                coords = { x = menu.x, y = menu.y } })
+            menu:update()
             if menu.items[num] then
                 item_enter(menu, num, mouse_event)
             end
@@ -324,6 +322,15 @@ function toggle(menu, args)
         menu:hide()
     else
         menu:show(args)
+    end
+end
+
+
+function update(menu)
+    if menu.visible then
+        menu:show({
+            keygrabber = menu.keygrabber,
+            coords = { x = menu.x, y = menu.y } })
     end
 end
 
@@ -523,6 +530,7 @@ function new(args, parent)
     ret.get_root = get_root
     ret.add_sub = add_sub
     ret.delete = delete
+    ret.update = update
     ret.toggle = toggle
     ret.hide = hide
     ret.show = show
