@@ -293,6 +293,7 @@ function show(menu, args)
         capi.keygrabber.run(grabber)
     end
     cur_menu = menu
+    menu.visible = true
 end
 
 
@@ -314,6 +315,7 @@ function hide(menu)
     if not cur_menu and menu.keygrabber then
         capi.keygrabber.stop()
     end
+    menu.visible = false
 end
 
 
@@ -499,6 +501,7 @@ function new(args, parent)
         parent_theme = beautiful.get()
     end
     local ret = {
+        visible = false,
         child = {},
         items = {},
         parent = parent,
