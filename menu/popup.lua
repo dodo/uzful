@@ -159,6 +159,8 @@ local function grabber(mod, key, event)
 end
 
 
+local item_enter -- used in exec
+
 local function exec(menu, num, mouse_event)
     local cmd = menu.items[num].cmd
     if type(cmd) == "table" then
@@ -179,25 +181,34 @@ local function exec(menu, num, mouse_event)
         get_root(menu):hide()
         util.spawn(cmd)
     elseif type(cmd) == "function" then
-        local vis, fun = cmd(menu.items[num])
-        if not vis then get_root(menu):hide() end
-        if fun then
-            fun()
+        local visible, action = cmd(menu.items[num], menu)
+        if not visible then
+            get_root(menu):hide()
+        else
+            menu:show({
+                keygrabber = menu.keygrabber,
+                coords = { x = menu.x, y = menu.y } })
+            if menu.items[num] then
+                item_enter(menu, num, mouse_event)
+            end
+        end
+        if action then
+            action()
         end
     end
 end
 
 
 local function item_leave(menu, num)
-    if num ~= nil then
-        local item = menu.items[num]
+    local item = menu.items[num]
+    if item then
         item.wibox:set_fg(item.theme.fg_normal)
         item.wibox:set_bg(item.theme.bg_normal)
     end
 end
 
 
-local function item_enter(menu, num, mouse_event)
+item_enter = function (menu, num, mouse_event)
     if num == nil or menu.sel == num then
         return
     elseif menu.sel then
