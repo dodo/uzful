@@ -179,8 +179,11 @@ local function exec(menu, num, mouse_event)
         get_root(menu):hide()
         util.spawn(cmd)
     elseif type(cmd) == "function" then
-        get_root(menu):hide()
-        cmd(menu.items[num].returned_value)
+        local vis, fun = cmd(menu.items[num])
+        if not vis then get_root(menu):hide() end
+        if fun then
+            fun()
+        end
     end
 end
 
