@@ -73,14 +73,17 @@ function add(wid, args)
     end
     setMarkup()
     local item
-    local mouse_fun = function ()
+    local mouse_fun = function (menuitem, menu)
         wid.number = wid.number - 1
-        setMarkup()
         args.notification.die()
-        wid.menu:delete(item)
-        wid:show()
+        menu:delete(menuitem)
+        setMarkup()
         local i = util.table.hasitem(args)
-        if i then  table.remove(data, i)  end
+        if i then
+            table.remove(data, i)
+        end
+
+        return wid.number ~= 0
     end
 
     local more = {"more …", {} }
@@ -131,7 +134,7 @@ function add(wid, args)
             just_add(wid.menu)
         end
     end
-    if conf.menu_visible then
+    if wid.menu.visible then
         wid:show(conf.menu_args)
     end
 end
@@ -141,7 +144,6 @@ function show(wid, args)
     local conf = widgets[wid]
     if conf == nil then return end
     if conf.visible then
-        conf.menu_visible = true
         conf.menu_args = args
         wid.menu:show(args)
     end
@@ -152,7 +154,6 @@ function hide(wid)
     local conf = widgets[wid]
     if conf == nil then return end
     if conf.visible then
-        conf.menu_visible = false
         wid.menu:hide()
     end
 end
@@ -162,7 +163,6 @@ function toggle_menu(wid, args)
     local conf = widgets[wid]
     if conf == nil then return end
     if conf.visible then
-        conf.menu_visible = not conf.menu_visible
         wid.menu:toggle(args)
     end
 end
@@ -217,7 +217,6 @@ function new(screen, args)
         disabled = vicious.helpers.format(args.disabled or "$1", { "⤫" }),
         format = args.text or "$1",
         menu = args.menu or {},
-        menu_visible = false,
         visible = args.visible ~= nil and args.visible,
         screen = screen }
 
