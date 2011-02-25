@@ -82,7 +82,10 @@ function add(wid, args)
         if i then
             table.remove(data, i)
         end
-
+        if #menu.items == conf.menu.len and menu.parent then
+            menu.parent:delete(wid.max + 1)
+            menu.parent:update()
+        end
         return wid.number ~= 0
     end
 
@@ -91,6 +94,7 @@ function add(wid, args)
             theme = args.theme or {}, args.text or "", mouse_fun, args.icon }
     local just_add = function (menu)
         item = menu:add(new_item)
+        menu:update()
     end
     local add_to_table
     add_to_table = function (t)
