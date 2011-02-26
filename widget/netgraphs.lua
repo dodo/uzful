@@ -63,9 +63,9 @@ function new(args)
     local interface_cache = {}
     for k, v in ipairs(network_interfaces) do
         interface_cache[v] = k
-	if v == args.default then
-	  cur = v
-	end
+        if v == args.default then
+            cur = v
+        end
     end
 
     local small = nil
