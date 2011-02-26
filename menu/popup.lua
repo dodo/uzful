@@ -8,6 +8,7 @@
 --------------------------------------------------------------------------------
 
 local wibox = require("wibox")
+local textbox = require("uzful.widget.textbox")
 local button = require("awful.button")
 local util = require("awful.util")
 local tags = require("awful.tag")
@@ -20,13 +21,14 @@ local pairs = pairs
 local table = table
 local type = type
 local capi = {
+    timer = timer,
     screen = screen,
     mouse = mouse,
     client = client,
     keygrabber = keygrabber,
     oocairo = oocairo }
 
-
+local print=print
 module("uzful.menu.popup")
 
 
@@ -115,6 +117,19 @@ local function set_coords(menu, screen_idx, m_coords)
 
         menu.y = menu.y + m_h > screen_h and screen_h - m_h or menu.y
         menu.x = menu.x + m_w > screen_w and screen_w - m_w or menu.x
+    end
+    if menu.parent then
+        if menu.parent.scroll.up.wibox.visible then
+            menu.y = menu.y + menu.parent.scroll.up.height
+        end
+    end
+    if m_h >= s_geometry.height then
+        menu.scroll.down.wibox.visible = true
+        menu.scroll.up.wibox.visible   = true
+        menu.y = s_geometry.y
+    else
+        menu.scroll.down.wibox.visible = false
+        menu.scroll.up.wibox.visible   = false
     end
 end
 
@@ -264,19 +279,99 @@ function get_root(menu)
 end
 
 
+function scroll_with(menu, offset, simgleshot)
+    menu.scroll.by = offset or 0
+    menu.scroll._singleshot = singleshot
+end
+
+
+function scroll_by(menu, offset, simgleshot)
+    menu.scroll.by = menu.scroll.by + (offset or 0)
+    menu.scroll._singleshot = singleshot
+end
+
+
+function scrolling(menu)
+    if menu.scroll.by == 0 then return end
+    local offset = menu.scroll.offset + menu.scroll.by
+    if offset < 0 then
+        offset = 0
+    else
+        local screen_index = capi.mouse.screen
+        local menu_h = - capi.screen[screen_index].workarea.height +
+            menu.scroll.up.height + menu.scroll.down.height +
+            #menu.items * (menu.height + menu.scroll.up.wibox.border_width) +
+            menu.scroll.up.wibox.border_width * 2
+        --print(":", menu_h, offset)
+        if offset > menu_h then
+            offset = menu_h
+        end
+    end
+    menu.scroll.offset = offset
+    if menu.scroll._singleshot then
+        menu.scroll.by = 0
+    end
+    menu:update()
+end
+
+
 function show(menu, args)
     args = args or {}
     local screen_index = capi.mouse.screen
+    local s_geometry = capi.screen[screen_index].workarea
+    local screen_h = s_geometry.y + s_geometry.height
     local keygrabber = args.keygrabber or false
     local coords = args.coords or nil
     set_coords(menu, screen_index, coords)
+    local offset = 0
+    for _, arrow in ipairs({"up", "down"}) do
+        local item = menu.scroll[arrow]
+        if item.wibox.visible then
+            local wibox = item.wibox
+            wibox.screen = screen_index
+            wibox.width = menu.width
+            wibox.height = menu.scroll[arrow].height
+            wibox.x = menu.x
+            if arrow == "up" then
+                wibox.y = menu.y
+            else
+                wibox.y = menu.y +
+                    #menu.items * (menu.height + wibox.border_width) +
+                    menu.scroll.up.height + wibox.border_width * 2
+                if wibox.y >= screen_h then
+                    wibox.y = screen_h - wibox.height
+                end
+            end
+        end
+    end
+    if menu.scroll.up.wibox.visible then
+        offset = menu.scroll.up.height + menu.scroll.up.wibox.border_width * 2
+    end
     for num, item in ipairs(menu.items) do
         local wibox = item.wibox
-        wibox.width = menu.width
-        wibox.height = menu.height
+        local m_h = menu.height + wibox.border_width
         wibox.x = menu.x
-        wibox.y = menu.y + (num - 1) * (menu.height + wibox.border_width)
+        wibox.width = menu.width
         wibox.screen = screen_index
+        local y = menu.y + (num - 1) * m_h - menu.scroll.offset
+        wibox.visible = true
+        if y + m_h < menu.y or y >= s_geometry.height - offset then
+            wibox.visible = false
+        elseif y < menu.y then
+            local h = menu.height - menu.y + y
+            if h == 0 then
+                wibox.visible = false
+            else
+                wibox.height = menu.height - menu.y + y
+            end
+            wibox.y = menu.y + offset
+        elseif menu.scroll.down.wibox.visible and y + offset + m_h > menu.scroll.down.wibox.y then
+            wibox.height = menu.scroll.down.wibox.y - y - offset
+            wibox.y = y + offset
+        else
+            wibox.height = menu.height
+            wibox.y = y + offset
+        end
     end
 
     if menu.parent then
@@ -292,6 +387,10 @@ function show(menu, args)
     end
     cur_menu = menu
     menu.visible = true
+    if not menu.scroll.timer.started and
+      (menu.scroll.up.wibox.visible or menu.scroll.down.wibox.visible) then
+        menu.scroll.timer:start()
+    end
 end
 
 
@@ -300,6 +399,9 @@ function hide(menu)
     for i = 1, #menu.items do
         item_leave(menu, i)
         menu.items[i].wibox.screen = nil
+    end
+    for _, arrow in ipairs({"up", "down"}) do
+        menu.scroll[arrow].wibox.screen = nil
     end
     if menu.active_child then
         menu.active_child:hide()
@@ -314,6 +416,9 @@ function hide(menu)
         capi.keygrabber.stop()
     end
     menu.visible = false
+    if menu.scroll.timer.started then
+        menu.scroll.timer:stop()
+    end
 end
 
 
@@ -360,7 +465,7 @@ function add(parent, item, index)
     end
     box:connect_signal("mouse::enter", mouse_fun)
     -- Create the item label widget
-    local label = wibox.widget.textbox()
+    local label = textbox()
     local key = ''
     label:set_markup(string.gsub(
         util.escape(item[1]), "&amp;(%w)",
@@ -527,6 +632,48 @@ function new(args, parent)
     ret.width  = parent and parent.width  or ret.theme.menu_width
     if type(ret.width)  ~= 'number' then ret.width  = tonumber(ret.width)  end
 
+    local arrow = function (text, offset)
+        local label = textbox()
+        label:set_markup(text)
+        label:set_align("center")
+        label:set_valign("center")
+        local w, h = label:fit(ret.width, -1)
+        local box = wibox({
+            height = h,
+            width =  ret.width,
+            fg = ret.theme.fg_normal,
+            bg = ret.theme.bg_normal,
+            border_color = ret.theme.border,
+            border_width = ret.theme.border_width,
+            type = "popup_menu" })
+        local layout = wibox.layout.align.horizontal()
+        layout:set_middle(label)
+        box:set_widget(layout)
+        box.visible = false
+        box:connect_signal("mouse::enter", function ()
+            ret:scroll_with(offset, false)
+        end)
+        box:connect_signal("mouse::leave", function ()
+            ret:scroll_with(0, true)
+        end)
+        return { wibox = box, label = label, width = w, height = h }
+    end
+    local timer = capi.timer({ timeout = 0.01 })
+    timer:connect_signal("timeout", function ()
+        ret:scrolling()
+    end)
+    ret.scroll = {
+        offset = 0,
+        by = 0,
+        timer = timer,
+        _singleshot = false,
+        up =   arrow(args.up_arrow   or "▴", -2),
+        down = arrow(args.down_arrow or "▾",  2),
+    }
+
+    ret.scroll_with = scroll_with
+    ret.scroll_by = scroll_by
+    ret.scrolling = scrolling
     ret.get_root = get_root
     ret.add_sub = add_sub
     ret.delete = delete
