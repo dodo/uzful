@@ -6,6 +6,7 @@
 
 local awful = require("awful")
 local wibox = require("wibox")
+local type = type
 local pairs = pairs
 local table = table
 local ipairs = ipairs
@@ -24,7 +25,7 @@ local default_net_colors = { fg = {down = "#00FF00", up = "#FF0000"},
 --- fency Net Graphs for all network interfaces
 -- To enable interface switch use: mynetgraphs.small.layout:connect_signal("button::release", mynetgraphs.switch)
 -- @param args table with all relevant properties
--- @param args.default <i>(optional) </i> specify the selected interface
+-- @param args.default <i>(optional) </i> specify the selected interface (name or number)
 -- @param args.normal <i>(default: "$1") </i> display every interface name as text (replaces '$1' with interface name) in big graphs layout (only available when `args.big` is given)
 -- @param args.hightlight <i>(default: "$1") </i> display selected interface name as text (replaces '$1' with interface name) in big graphs layout (only available when `args.big` is given)
 -- @param args.small <i>(optional) </i> generates a small cpurgaph with all cpu usage combined when table given
@@ -58,9 +59,10 @@ function new(args)
         end
     end
 
-    local network_interfaces = getinfo.interfaces()
-    local cur = network_interfaces[1]
     local interface_cache = {}
+    local network_interfaces = getinfo.interfaces()
+    local cur = type(args.default) == "number" and args.default or 1
+    cur = network_interfaces[cur]
     for k, v in ipairs(network_interfaces) do
         interface_cache[v] = k
         if v == args.default then
