@@ -28,7 +28,7 @@ local capi = {
     keygrabber = keygrabber,
     oocairo = oocairo }
 
-local print=print
+
 module("uzful.menu.popup")
 
 
@@ -85,9 +85,13 @@ local function set_coords(menu, screen_idx, m_coords)
     local s_geometry = capi.screen[screen_idx].workarea
     local screen_w = s_geometry.x + s_geometry.width
     local screen_h = s_geometry.y + s_geometry.height
-
+    local max_h = menu.max_height and menu.max_height < s_geometry.height and
+        menu.max_height or s_geometry.height
     local i_h = menu.height + menu.theme.border_width
     local m_h = (i_h * #menu.items) + menu.theme.border_width
+    if m_h > max_h then
+        m_h = max_h
+    end
 
     if menu.parent then
         menu.width = menu.parent.width
@@ -117,11 +121,11 @@ local function set_coords(menu, screen_idx, m_coords)
         menu.y = menu.y + m_h > screen_h and screen_h - m_h or menu.y
         menu.x = menu.x + m_w > screen_w and screen_w - m_w or menu.x
     end
-    if menu.parent then
-        if menu.parent.scroll.up.wibox.visible then
-            menu.y = menu.y + menu.parent.scroll.up.height
-        end
-    end
+--     if menu.parent then
+--         if menu.parent.scroll.up.wibox.visible then
+--             menu.y = menu.y + menu.parent.scroll.up.height
+--         end
+--     end
 end
 
 
@@ -285,21 +289,25 @@ end
 function scrolling(menu)
     if menu.scroll.by == 0 then return end
     local offset = menu.scroll.offset + menu.scroll.by
-    if offset < 0 then
+    if offset <= 0 then
         offset = 0
     else
         local screen_index = capi.mouse.screen
-        local menu_h = - capi.screen[screen_index].workarea.height +
-            menu.scroll.up.height + menu.scroll.down.height +
-            #menu.items * (menu.height + menu.theme.border_width) +
-            menu.theme.border_width * 2
-        --print(":", menu_h, offset)
+        local s_geometry = capi.screen[screen_index].workarea
+        local max_h = menu.max_height and menu.max_height < s_geometry.height
+            and menu.max_height or s_geometry.height
+        local i_h = menu.height + menu.theme.border_width
+        local menu_h = (i_h * #menu.items) + menu.theme.border_width
+        if menu_h > max_h then
+            menu_h = max_h
+        end
         if offset > menu_h then
             offset = menu_h
         end
     end
     menu.scroll.offset = offset
     if menu.scroll._singleshot then
+        menu.scroll._singleshot = false
         menu.scroll.by = 0
     end
     menu:update()
@@ -315,37 +323,44 @@ function show(menu, args)
         menu.theme.border_width
     local keygrabber = args.keygrabber or false
     local coords = args.coords or nil
+    local max_h = menu.max_height and menu.max_height < s_geometry.height and
+        menu.max_height or s_geometry.height
     set_coords(menu, screen_index, coords)
-    local offset = 0
-    for _, arrow in ipairs({"up", "down"}) do
-        local wibox = menu.scroll[arrow].wibox
-        wibox.screen = screen_index
-        wibox.width = menu.width
-        wibox.height = menu.scroll[arrow].height
-        wibox.x = menu.x
-        if arrow == "up" then
-            wibox.y = s_geometry.y
-        else
-            wibox.y = menu.y +
-                #menu.items * (menu.height + wibox.border_width) +
-                menu.scroll.up.height + wibox.border_width * 2
-            if wibox.y >= screen_h then
-                wibox.y = screen_h - wibox.height - wibox.border_width * 2
-            end
-        end
-    end
-    if menu_h >= s_geometry.height then
+    if menu_h > max_h then
+        menu_h = max_h
         local msd_h = menu_h - menu.scroll.offset +
             menu.scroll.up.height + menu.scroll.up.wibox.border_width
-        menu.scroll.down.wibox.visible = msd_h > s_geometry.height
+        if menu.y < s_geometry.y then
+            menu.y = s_geometry.y
+        end
+        menu.scroll.down.wibox.visible = msd_h > max_h
         menu.scroll.up.wibox.visible = menu.scroll.offset > 0
-        menu.y = s_geometry.y
     else
         menu.scroll.down.wibox.visible = false
         menu.scroll.up.wibox.visible   = false
     end
-    if menu.scroll.up.wibox.visible then
-        offset = menu.scroll.up.height + menu.scroll.up.wibox.border_width * 2
+    local offset = 0
+    local maxmenu_h = max_h
+    for _, arrow in ipairs({"up", "down"}) do
+        local wibox = menu.scroll[arrow].wibox
+        if wibox.visible then
+            wibox.screen = screen_index
+            wibox.width = menu.width
+            wibox.height = menu.scroll[arrow].height
+            wibox.x = menu.x
+            if arrow == "up" then
+                wibox.y = menu.y
+                offset = wibox.height + wibox.border_width
+            else
+                local h = wibox.height + wibox.border_width
+                if menu.y + max_h + h > screen_h then
+                    maxmenu_h = screen_h - menu.y
+                end
+                maxmenu_h = maxmenu_h - h
+                wibox.y = menu.y + maxmenu_h
+                --wibox.x = wibox.x + 80
+            end
+        end
     end
     for num, item in ipairs(menu.items) do
         local wibox = item.wibox
@@ -353,30 +368,29 @@ function show(menu, args)
         wibox.x = menu.x
         wibox.width = menu.width
         wibox.screen = screen_index
-        local y = menu.y + (num - 1) * m_h - menu.scroll.offset
+        local y = (num - 1) * m_h - menu.scroll.offset
         wibox.visible = true
-        if y + m_h < menu.y or y >= s_geometry.height - offset then
+        if y + m_h < offset or y >= maxmenu_h then
             wibox.visible = false
-        elseif y < menu.y then
-            local h = menu.height + wibox.border_width - menu.y + y
+        elseif y < offset then
+            local h = m_h + y - offset
             if h == 0 then
                 wibox.visible = false
             else
                 wibox.height = h
             end
             wibox.y = menu.y + offset
-        elseif menu.scroll.down.wibox.visible and
-          y + offset + m_h > menu.scroll.down.wibox.y then
-            local h = menu.scroll.down.wibox.y - y - offset
+        elseif y + m_h >= maxmenu_h then
+            local h = maxmenu_h - y - wibox.border_width
             if h == 0 then
                 wibox.visible = false
             else
                 wibox.height = h
             end
-            wibox.y = y + offset
+            wibox.y = menu.y + y
         else
             wibox.height = menu.height
-            wibox.y = y + offset
+            wibox.y = menu.y + y
         end
     end
 
@@ -623,10 +637,14 @@ function new(args, parent)
         child = {},
         items = {},
         parent = parent,
+        max_height = args.max,
         theme = load_theme(theme, parent_theme) }
 
     if parent then
         ret.auto_expand = parent.auto_expand
+        if not ret.max_height then
+            ret.max_height = parent.max_height
+        end
     elseif args.auto_expand ~= nil then
         ret.auto_expand = args.auto_expand
     else
@@ -664,17 +682,17 @@ function new(args, parent)
         end)
         return { wibox = box, label = label, width = w, height = h }
     end
-    local timer = capi.timer({ timeout = 0.01 })
+    local timer = capi.timer({ timeout = 0.05 })
     timer:connect_signal("timeout", function ()
         ret:scrolling()
     end)
     ret.scroll = {
-        offset = 0,
         by = 0,
+        offset = 0,
         timer = timer,
         _singleshot = false,
-        up =   arrow(args.up_arrow   or "▴", -2),
-        down = arrow(args.down_arrow or "▾",  2),
+        up =   arrow(args.up_arrow   or "▴", -5),
+        down = arrow(args.down_arrow or "▾",  5),
     }
 
     ret.scroll_with = scroll_with
