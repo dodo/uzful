@@ -329,9 +329,9 @@ function show(menu, args)
         if menu.y < s_geometry.y then
             menu.y = s_geometry.y
         end
-        menu_h = max_h
         menu.scroll.down.wibox.visible = menu_h - menu.scroll.offset >= max_h
         menu.scroll.up.wibox.visible = menu.scroll.offset > 0
+        menu_h = max_h
     else
         menu.scroll.down.wibox.visible = false
         menu.scroll.up.wibox.visible   = false
