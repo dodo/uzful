@@ -123,14 +123,6 @@ local function set_coords(menu, screen_idx, m_coords)
             menu.y = menu.y + menu.parent.scroll.up.height
         end
     end
-    if m_h >= s_geometry.height then
-        menu.scroll.down.wibox.visible = true
-        menu.scroll.up.wibox.visible   = true
-        menu.y = s_geometry.y
-    else
-        menu.scroll.down.wibox.visible = false
-        menu.scroll.up.wibox.visible   = false
-    end
 end
 
 
@@ -300,8 +292,8 @@ function scrolling(menu)
         local screen_index = capi.mouse.screen
         local menu_h = - capi.screen[screen_index].workarea.height +
             menu.scroll.up.height + menu.scroll.down.height +
-            #menu.items * (menu.height + menu.scroll.up.wibox.border_width) +
-            menu.scroll.up.wibox.border_width * 2
+            #menu.items * (menu.height + menu.theme.border_width) +
+            menu.theme.border_width * 2
         --print(":", menu_h, offset)
         if offset > menu_h then
             offset = menu_h
@@ -320,29 +312,38 @@ function show(menu, args)
     local screen_index = capi.mouse.screen
     local s_geometry = capi.screen[screen_index].workarea
     local screen_h = s_geometry.y + s_geometry.height
+    local menu_h = (menu.height + menu.theme.border_width) * #menu.items +
+        menu.theme.border_width
     local keygrabber = args.keygrabber or false
     local coords = args.coords or nil
     set_coords(menu, screen_index, coords)
     local offset = 0
     for _, arrow in ipairs({"up", "down"}) do
-        local item = menu.scroll[arrow]
-        if item.wibox.visible then
-            local wibox = item.wibox
-            wibox.screen = screen_index
-            wibox.width = menu.width
-            wibox.height = menu.scroll[arrow].height
-            wibox.x = menu.x
-            if arrow == "up" then
-                wibox.y = menu.y
-            else
-                wibox.y = menu.y +
-                    #menu.items * (menu.height + wibox.border_width) +
-                    menu.scroll.up.height + wibox.border_width * 2
-                if wibox.y >= screen_h then
-                    wibox.y = screen_h - wibox.height
-                end
+        local wibox = menu.scroll[arrow].wibox
+        wibox.screen = screen_index
+        wibox.width = menu.width
+        wibox.height = menu.scroll[arrow].height
+        wibox.x = menu.x
+        if arrow == "up" then
+            wibox.y = s_geometry.y
+        else
+            wibox.y = menu.y +
+                #menu.items * (menu.height + wibox.border_width) +
+                menu.scroll.up.height + wibox.border_width * 2
+            if wibox.y >= screen_h then
+                wibox.y = screen_h - wibox.height
             end
         end
+    end
+    if menu_h >= s_geometry.height then
+        local msd_h = menu_h - menu.scroll.offset +
+            menu.scroll.up.height + menu.scroll.up.wibox.border_width
+        menu.scroll.down.wibox.visible = msd_h > s_geometry.height
+        menu.scroll.up.wibox.visible = menu.scroll.offset > 0
+        menu.y = s_geometry.y
+    else
+        menu.scroll.down.wibox.visible = false
+        menu.scroll.up.wibox.visible   = false
     end
     if menu.scroll.up.wibox.visible then
         offset = menu.scroll.up.height + menu.scroll.up.wibox.border_width * 2
@@ -365,7 +366,8 @@ function show(menu, args)
                 wibox.height = menu.height - menu.y + y
             end
             wibox.y = menu.y + offset
-        elseif menu.scroll.down.wibox.visible and y + offset + m_h > menu.scroll.down.wibox.y then
+        elseif menu.scroll.down.wibox.visible and
+          y + offset + m_h > menu.scroll.down.wibox.y then
             wibox.height = menu.scroll.down.wibox.y - y - offset
             wibox.y = y + offset
         else
