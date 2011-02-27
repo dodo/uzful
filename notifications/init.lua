@@ -176,7 +176,7 @@ function new(screen, args)
         menu = args.menu or {},
         visible = args.visible ~= nil and args.visible,
         screen = screen }
-    conf.menu.max = conf.menu.max or 345
+    conf.menu.max = conf.menu.max or args.max or 345
 
     local ret = {
         menu = menu(conf.menu),
