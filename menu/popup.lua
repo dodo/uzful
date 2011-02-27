@@ -663,6 +663,7 @@ function new(args, parent)
         label:set_valign("center")
         local w, h = label:fit(ret.width, -1)
         local box = wibox({
+            ontop = true,
             height = h,
             width =  ret.width,
             fg = ret.theme.fg_normal,
@@ -682,17 +683,17 @@ function new(args, parent)
         end)
         return { wibox = box, label = label, width = w, height = h }
     end
-    local timer = capi.timer({ timeout = 0.05 })
+    local timer = capi.timer({ timeout = args.scroll_every or 0.05 })
     timer:connect_signal("timeout", function ()
         ret:scrolling()
     end)
     ret.scroll = {
         by = 0,
-        offset = 0,
+        offset = args.scroll_offset or 0,
         timer = timer,
         _singleshot = false,
-        up =   arrow(args.up_arrow   or "▴", -5),
-        down = arrow(args.down_arrow or "▾",  5),
+        up =   arrow(args.up_arrow   or "▴", -(args.scroll_by or 5)),
+        down = arrow(args.down_arrow or "▾",  (args.scroll_by or 5)),
     }
 
     ret.scroll_with = scroll_with
