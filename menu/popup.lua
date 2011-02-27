@@ -20,6 +20,7 @@ local ipairs = ipairs
 local pairs = pairs
 local table = table
 local type = type
+local math = math
 local capi = {
     timer = timer,
     screen = screen,
@@ -575,7 +576,11 @@ function add(parent, item, index)
         returned_value = item[1] })
     if index and parent.items[index] then
         -- parent:delete(index) FIXME
-        parent.items[index] = ret
+        if index < 0 then
+            parent.items[math.abs(index)] = ret
+        else
+            table.insert(parent.items, index, ret)
+        end
     else
         table.insert(parent.items, ret)
     end
@@ -588,7 +593,11 @@ function add_sub(menu, index, item, subindex)
     local subitem = menu.items[index]
     if not subitem or type(subitem.cmd) ~= "table" then return end
     if subindex then
-        subitem.cmd[subindex] = item
+        if subindex < 0 then
+            subitem.cmd[math.abs(subindex)] = item
+        else
+            table.insert(subitem.cmd, subindex, item)
+        end
     else
         table.insert(subitem.cmd, item)
     end
