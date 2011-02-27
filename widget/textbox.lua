@@ -172,7 +172,7 @@ function set_valign(box, mode)
     end
 end
 
---- Set a textbox' vertical alignment
+--- Set a textbox' horizontal alignment
 -- @param mode Where should the textbox be drawn? "left", "center" or "right"
 function set_align(box, mode)
     local allowed = { left = true, center = true, right = true }
