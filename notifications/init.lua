@@ -82,6 +82,11 @@ function add(wid, args)
         if i then
             table.remove(data, i)
         end
+        if #menu.items * (menu.height + menu.theme.border_width) +
+         menu.theme.border_width < menu.max_height then
+            menu.scroll.offset = 0
+            menu:update()
+        end
         return wid.number ~= 0
     end
     wid.menu:add({
