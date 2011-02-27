@@ -295,13 +295,14 @@ function scrolling(menu)
     else
         local i_h = menu.height + menu.theme.border_width
         local menu_h = (i_h * #menu.items) + menu.theme.border_width
+        local max_h = menu_h
         if menu.max_height then
-            if menu_h > menu.max_height then
-                menu_h = menu.max_height
+            if max_h > menu.max_height then
+                meax_h = menu.max_height
             end
         end
-        if offset > menu_h then
-            offset = menu_h
+        if offset > max_h then
+            offset = menu_h - max_h
         end
     end
     menu.scroll.offset = offset
@@ -329,7 +330,7 @@ function show(menu, args)
         if menu.y < s_geometry.y then
             menu.y = s_geometry.y
         end
-        menu.scroll.down.wibox.visible = menu_h - menu.scroll.offset >= max_h
+        menu.scroll.down.wibox.visible = menu_h - menu.scroll.offset > max_h
         menu.scroll.up.wibox.visible = menu.scroll.offset > 0
         menu_h = max_h
     else
@@ -377,7 +378,7 @@ function show(menu, args)
                 wibox.height = h
             end
             wibox.y = menu.y + offset
-        elseif y + m_h >= maxmenu_h then
+        elseif y + m_h > maxmenu_h then
             local h = maxmenu_h - y - wibox.border_width
             if h == 0 then
                 wibox.visible = false
