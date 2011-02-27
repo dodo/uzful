@@ -82,65 +82,11 @@ function add(wid, args)
         if i then
             table.remove(data, i)
         end
-        if #menu.items == conf.menu.len and menu.parent then
-            menu.parent:delete(wid.max + 1)
-            menu.parent:update()
-        end
         return wid.number ~= 0
     end
-
-    local more = {"more …", {} }
-    local new_item = {
-            theme = args.theme or {}, args.text or "", mouse_fun, args.icon }
-    local just_add = function (menu)
-        item = menu:add(new_item)
-        menu:update()
-    end
-    local add_to_table
-    add_to_table = function (t)
-        if #t >= wid.max then
-            if #t == wid.max then
-                table.insert(t, more)
-            end
-            add_to_table(t[wid.max + 1][2])
-        else
-            table.insert(t, new_item)
-        end
-    end
-    local add_to_menu
-    add_to_menu = function (menu)
-        if #menu.items >= wid.max then
-            if #menu.items == wid.max then
-                menu:add(more)
-            end
-            local cmd = menu.items[wid.max + 1].cmd
-            if #cmd >= wid.max then
-                local child = menu.child[wid.max + 1]
-                if child then
-                    add_to_menu(child)
-                else
-                    add_to_table(cmd)
-                end
-            else
-                item = menu:add_sub(wid.max + 1, new_item)
-            end
-        else
-            just_add(menu)
-        end
-    end
-
-    if not wid.max or wid.max == 0 then
-        just_add(wid.menu)
-    else
-        if #wid.menu.items >= wid.max then
-            add_to_menu(wid.menu)
-        else
-            just_add(wid.menu)
-        end
-    end
-    if wid.menu.visible then
-        wid:show(conf.menu_args)
-    end
+    wid.menu:add({
+        theme = args.theme or {}, args.text or "", mouse_fun, args.icon }, 1)
+    wid.menu:update()
 end
 
 
@@ -149,6 +95,7 @@ function show(wid, args)
     if conf == nil then return end
     if conf.visible then
         conf.menu_args = args
+        wid.menu.scroll.offset = 0
         wid.menu:show(args)
     end
 end
@@ -197,6 +144,7 @@ function disable(wid)
     data = new
     wid.number = 0
     conf.visible = false
+    wid.menu.scroll.offset = 0
     wid.text:set_markup(conf.disabled)
     naughty.resume()
 end
@@ -223,9 +171,9 @@ function new(screen, args)
         menu = args.menu or {},
         visible = args.visible ~= nil and args.visible,
         screen = screen }
+    conf.menu.max = conf.menu.max or 345
 
     local ret = {
-        max = args.max or 0,
         menu = menu(conf.menu),
         text = wibox.widget.textbox(),
         toggle_menu = toggle_menu,
