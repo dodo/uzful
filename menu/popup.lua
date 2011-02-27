@@ -100,8 +100,8 @@ local function set_coords(menu, screen_idx, m_coords)
         local p_w = i_h * num
         local m_w = menu.width - menu.theme.border_width
 
-        menu.y = menu.parent.y + p_w + m_h > screen_h and
-                 screen_h - m_h or menu.parent.y + p_w
+        local y = menu.parent.y + p_w - menu.parent.scroll.offset
+        menu.y = y + m_h > screen_h and screen_h - m_h or y
         menu.x = menu.parent.x + m_w*2 > screen_w and
                  menu.parent.x - m_w or menu.parent.x + m_w
     else
@@ -111,7 +111,6 @@ local function set_coords(menu, screen_idx, m_coords)
             m_coords.x = m_coords.x + 1
             m_coords.y = m_coords.y + 1
         end
-
         menu.y = m_coords.y < s_geometry.y and s_geometry.y or m_coords.y
         menu.x = m_coords.x < s_geometry.x and s_geometry.x or m_coords.x
 
