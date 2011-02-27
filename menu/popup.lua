@@ -331,7 +331,7 @@ function show(menu, args)
                 #menu.items * (menu.height + wibox.border_width) +
                 menu.scroll.up.height + wibox.border_width * 2
             if wibox.y >= screen_h then
-                wibox.y = screen_h - wibox.height
+                wibox.y = screen_h - wibox.height - wibox.border_width * 2
             end
         end
     end
@@ -359,16 +359,21 @@ function show(menu, args)
         if y + m_h < menu.y or y >= s_geometry.height - offset then
             wibox.visible = false
         elseif y < menu.y then
-            local h = menu.height - menu.y + y
+            local h = menu.height + wibox.border_width - menu.y + y
             if h == 0 then
                 wibox.visible = false
             else
-                wibox.height = menu.height - menu.y + y
+                wibox.height = h
             end
             wibox.y = menu.y + offset
         elseif menu.scroll.down.wibox.visible and
           y + offset + m_h > menu.scroll.down.wibox.y then
-            wibox.height = menu.scroll.down.wibox.y - y - offset
+            local h = menu.scroll.down.wibox.y - y - offset
+            if h == 0 then
+                wibox.visible = false
+            else
+                wibox.height = h
+            end
             wibox.y = y + offset
         else
             wibox.height = menu.height
