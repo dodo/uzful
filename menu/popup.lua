@@ -293,14 +293,12 @@ function scrolling(menu)
     if offset <= 0 then
         offset = 0
     else
-        local screen_index = capi.mouse.screen
-        local s_geometry = capi.screen[screen_index].workarea
-        local max_h = menu.max_height and menu.max_height < s_geometry.height
-            and menu.max_height or s_geometry.height
         local i_h = menu.height + menu.theme.border_width
         local menu_h = (i_h * #menu.items) + menu.theme.border_width
-        if menu_h > max_h then
-            menu_h = max_h
+        if menu.max_height then
+            if menu_h > menu.max_height then
+                menu_h = menu.max_height
+            end
         end
         if offset > menu_h then
             offset = menu_h
@@ -328,12 +326,13 @@ function show(menu, args)
         menu.max_height or s_geometry.height
     set_coords(menu, screen_index, coords)
     if menu_h > max_h then
-        menu_h = max_h
         local msd_h = menu_h - menu.scroll.offset +
-            menu.scroll.up.height + menu.scroll.up.wibox.border_width
+            menu.scroll.up.height + menu.scroll.up.wibox.border_width -
+            menu.scroll.down.height - menu.scroll.down.wibox.border_width
         if menu.y < s_geometry.y then
             menu.y = s_geometry.y
         end
+        menu_h = max_h
         menu.scroll.down.wibox.visible = msd_h > max_h
         menu.scroll.up.wibox.visible = menu.scroll.offset > 0
     else
