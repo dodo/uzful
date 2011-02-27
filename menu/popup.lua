@@ -326,14 +326,11 @@ function show(menu, args)
         menu.max_height or s_geometry.height
     set_coords(menu, screen_index, coords)
     if menu_h > max_h then
-        local msd_h = menu_h - menu.scroll.offset +
-            menu.scroll.up.height + menu.scroll.up.wibox.border_width -
-            menu.scroll.down.height - menu.scroll.down.wibox.border_width
         if menu.y < s_geometry.y then
             menu.y = s_geometry.y
         end
         menu_h = max_h
-        menu.scroll.down.wibox.visible = msd_h > max_h
+        menu.scroll.down.wibox.visible = menu_h - menu.scroll.offset >= max_h
         menu.scroll.up.wibox.visible = menu.scroll.offset > 0
     else
         menu.scroll.down.wibox.visible = false
