@@ -8,7 +8,6 @@
 --------------------------------------------------------------------------------
 
 local wibox = require("wibox")
-local textbox = require("uzful.widget.textbox")
 local button = require("awful.button")
 local util = require("awful.util")
 local tags = require("awful.tag")
@@ -483,7 +482,7 @@ function add(parent, item, index)
     end
     box:connect_signal("mouse::enter", mouse_fun)
     -- Create the item label widget
-    local label = textbox()
+    local label = wibox.widget.textbox()
     local key = ''
     label:set_markup(string.gsub(
         util.escape(item[1]), "&amp;(%w)",
@@ -663,7 +662,7 @@ function new(args, parent)
     if type(ret.width)  ~= 'number' then ret.width  = tonumber(ret.width)  end
 
     local arrow = function (text, offset)
-        local label = textbox()
+        local label = wibox.widget.textbox()
         label:set_markup(text)
         label:set_align("center")
         label:set_valign("center")
