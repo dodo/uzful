@@ -330,7 +330,7 @@ end
 --- Update menu content
 -- @param menu The mnenu to update.
 function update(menu)
-    if menu.visible then
+    if menu.wibox.visible then
         menu:show({
             keygrabber = menu.keygrabber,
             coords = { x = menu.x, y = menu.y } })
