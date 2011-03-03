@@ -422,6 +422,10 @@ function delete(menu, num)
         menu:item_leave(menu.sel)
         menu.sel = nil
     end
+    menu.layout:reset()
+    for _, i in ipairs(menu.items) do
+        menu.layout:add(i._background)
+    end
     if menu.child[num] then
          menu.child[num]:hide()
         if menu.active_child == menu.child[num] then
