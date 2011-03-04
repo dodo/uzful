@@ -112,7 +112,7 @@ local function set_coords(menu, screen_idx, m_coords)
                 end
             end
         end
-        w = w + menu.parent.theme.border_width * 2
+        w = w + menu.parent.theme.border_width
 
         menu.y = menu.parent.y + h + menu.height > screen_h and
                  screen_h - menu.height or menu.parent.y + h
