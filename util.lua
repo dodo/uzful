@@ -7,8 +7,18 @@
 local obvious = {}
 local require = require
 local vicious = require("vicious")
+local pairs = pairs
 
 module("uzful.util")
+
+table = {
+    update = function (t, set)
+        for k, v in pairs(set) do
+            t[k] = v
+        end
+        return t
+    end
+    }
 
 patch = {
     --- Enables always vicious.cache for all registered vicious widgets
