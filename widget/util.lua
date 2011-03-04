@@ -4,6 +4,7 @@
 -- @release v3.4-503-g4972a28
 --------------------------------------------------------------------------------
 
+local util = require("uzful.util")
 local Wibox = require("wibox")
 local pairs = pairs
 
@@ -42,4 +43,15 @@ function set_properties(widget, properties)
         end
     end
     return widget
+end
+
+--- wibox presettings for an infobox
+-- type = notification
+-- visible = false
+-- ontop = true
+-- @param args any wibox args like in uzful.widget.util.wibox
+-- @return wibox object
+function infobox(args)
+    return wibox(util.table.update({ type = "notification",
+        visible = false, ontop = true }, args))
 end
