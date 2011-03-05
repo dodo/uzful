@@ -80,7 +80,7 @@ function infobox(args)
         if align == "left" then
             box.x = area.x
         elseif align == "center" then
-            box.x = area.x + (area.width - area.width) * 0.5
+            box.x = area.x + (area.width - box.width) * 0.5
         elseif align == "right" then
             box.x = area.x + area.width - box.width
         end
