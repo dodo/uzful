@@ -86,7 +86,7 @@ for more examples look at my [awesomerc](https://gist.github.com/818214).
 
     luadoc -d doc/ *.lua
 
-    for more detailed infos look into the [uzful wiki](https://github.com/dodo/uzful/wiki).
+for more detailed infos look into the [uzful wiki](https://github.com/dodo/uzful/wiki).
 
 ## TODO
 
