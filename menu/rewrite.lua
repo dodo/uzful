@@ -492,11 +492,7 @@ function entry(parent, args)
     if args.icon then
         icon = args.icon
         if type(icon) == "string" then
-            if icon:find('.+%.png') then
-                icon = capi.oocairo.image_surface_create_from_png(icon)
-            else
-                icon = nil -- FIXME little workaround for fuckup from xpm
-            end
+            icon = capi.oocairo.image_surface_create_from_png(icon)
         end
     end
     if icon then
@@ -518,9 +514,13 @@ function entry(parent, args)
             icon = img
         end
         iconbox = wibox.widget.imagebox()
-        iconbox:set_image(icon)
-        margin:set_left(2)
-    else
+        if iconbox:set_image(icon) then
+            margin:set_left(2)
+        else
+            iconbox = nil
+        end
+    end
+    if not iconbox then
         margin:set_left(args.theme.height + 2)
     end
     -- Create the submenu icon widget
