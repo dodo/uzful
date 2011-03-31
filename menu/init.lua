@@ -7,7 +7,6 @@
 
 require("uzful.menu.util")
 require("uzful.menu.popup")
-require("uzful.menu.rewrite")
 
 local setmetatable = setmetatable
 local util = require("uzful.menu.util")
