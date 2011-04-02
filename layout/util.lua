@@ -7,7 +7,7 @@
 local type = type
 local pairs = pairs
 
-module("uzful.layout")
+module("uzful.layout.util")
 
 --- Builds a layout from a table tree
 -- When inserted a function it returns the result without parameters.
