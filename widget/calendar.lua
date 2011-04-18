@@ -7,6 +7,7 @@
 
 local os = os
 local math = math
+local type = type
 local pairs = pairs
 local string = string
 local tostring = tostring
@@ -97,7 +98,7 @@ end
 -- every day calendar
 -- @param args <i>(optional) </i> table with all relevant properties
 -- @param args.start <i>(default: 2 (monday)) </i> specify the week start day
--- @param args.font <i>/default: 'monospace') </i> text font
+-- @param args.font <i>/default: 'monospace') </i> text font or text size if number
 -- @param args.year <i>(default: os.date('%Y')) </i> year to be displayed
 -- @param args.month <i>(default: os.date('%m')) </i> month to be displayed
 -- @param args.number <i>/default: '$1') </i> format string for all days
@@ -109,6 +110,9 @@ end
 function new(args)
     args = args or {}
     args.font = args.font or "monospace"
+    if type(args.font) == "number" then
+        args.font = "monospace " .. tostring(args.font)
+    end
     local ret = {}
     ret.month = args.month or os.date('%m')
     ret.year = args.year or os.date('%Y')
@@ -120,9 +124,9 @@ function new(args)
     ret.widget = wibox.widget.textbox()
     ret.update = function ()
         ret.text = generate(ret.month, ret.year, ret.start, format)
-        ret.text = '<span font_desc="'..args.font..'">'..ret.text..'</span>'
         ret.text = helper.format(args.all or "$1", {ret.text})
         ret.widget:set_markup(ret.text)
+        ret.widget:set_font(args.font)
         ret.width, ret.height = ret.widget:fit(-1, -1)
     end
     ret:update()

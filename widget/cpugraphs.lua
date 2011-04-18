@@ -23,6 +23,7 @@ local default_cpu_colors = { fg = "#FFFFFF", bg = "#000000" }
 -- @param args table with all relevant properties
 -- @param args.load <i>(optional) </i> generates average load text when table given (only available when `args.big` is given)
 -- @param args.load.text <i>(default "$1 $2 $3") </i> sets load text (replaces '$1', '$2' and '$3' with values) in big graphs layout
+-- @param args.load.font <i>(default beautiful.get_font()) </i> sets load font
 -- @param args.load.interval <i>(needed when `args.load` given) </i> sets vicious update interval for load text
 -- @param args.small <i>(optional) </i> generates a small cpurgaph with all cpu usage combined when table given
 -- @param args.small.interval <i>(needed when `args.small` given) </i> sets vicious update interval for small cpu graph
@@ -72,6 +73,7 @@ function new(args)
         local layout = wibox.layout.fixed.vertical()
         if args.load then
             ret.load = wibox.widget.textbox()
+            if args.load.font then  ret.load:set_font(args.load.font)  end
             vicious.register(ret.load, vicious.widgets.uptime,
                 vicious.helpers.format(args.load.text or "$1 $2 $3",
                     {"$4", "$5", "$6"}), args.load.interval)
