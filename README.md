@@ -16,7 +16,7 @@ cleaner awesome/rc.lua
 
 ## Dependencies
 
-* [awesome](http://awesome.naquadah.org/)
+* [awesome](http://awesome.naquadah.org/) >=3.4.9 (buggy, better is git version)
 * [vicious](http://git.sysphere.org/vicious/)
 * [obvious](http://git.mercenariesguild.net/?p=obvious.git) (optional) need for uzful.util.volume
 
