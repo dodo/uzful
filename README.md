@@ -75,7 +75,7 @@ or maybe a battery progressbar in an image:
         end)
     vicious.register(mycritbat, vicious.widgets.bat, "$2", 60, "BAT0")
 
-for more examples look at my [awesomerc](https://gist.github.com/818214).
+for more examples look at my [awesomerc](https://github.com/dodo/awesomerc).
 
 ## Install
 
