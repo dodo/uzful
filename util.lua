@@ -100,3 +100,16 @@ function volume(channel, typ, cardid)
     }
 end
 
+--- Changeable function list
+-- you can change the function by next or prev which will be invoked by call
+-- @param list list of functions
+-- @return a table with methods: current, call, next, prev
+function functionlist(list)
+    local current = 1
+    return {
+        current = function () return current end,
+        call = function (...) return list[current](...) end,
+        next = function () current = current % #list + 1 end,
+        prev = function () current  = current == 1 and #list or current - 1 end,
+    }
+end
