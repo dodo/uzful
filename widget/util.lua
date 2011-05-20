@@ -86,6 +86,9 @@ function infobox(args)
         end
     end
     ret.toggle = function ()
+        if not box.visible then
+            box.screen = args.screen or box.screen
+        end
         box.visible = not box.visible
     end
     ret.hide = function ()
@@ -95,6 +98,7 @@ function infobox(args)
     end
     ret.show = function ()
         if not box.visible then
+            box.screen = args.screen or box.screen
             box.visible = true
         end
     end
