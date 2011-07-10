@@ -4,13 +4,7 @@
 -- @release v3.4-503-g4972a28
 --------------------------------------------------------------------------------
 
-require("uzful.layout.util")
-require("uzful.layout.suit")
+require("uzful.layout.suit.strips")
 
-local util = require("uzful.layout.util")
-
-
-module("uzful.layout")
-
-
-build = util.build
+--- Suits for awful
+module("uzful.layout.suit")
