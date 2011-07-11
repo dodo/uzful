@@ -4,11 +4,15 @@
 -- @release v3.4-503-g4972a28
 --------------------------------------------------------------------------------
 
-local ipairs = ipairs
+local tag = require("awful.tag")
+local math = math
 
 module("uzful.layout.suit.strips")
 
-local function strips(p, orientation)
+
+local function strips_group(p, orientation, group, offset, fact)
+    orientation = orientation or "south"
+
     -- this handles are different orientations
     local height = "height"
     local width = "width"
@@ -21,24 +25,38 @@ local function strips(p, orientation)
         y = "x"
     end
 
+    local cls = p.clients
     local wa = p.workarea
+    local size =  math.min(wa[width] * fact, wa[width] - offset)
+    local small = math.max(0, size / (group.last - group.first + 1))
+    for i = group.first,group.last do local c = cls[i]
+        local g = {}
+        g[width]  = small      - c.border_width * 2
+        g[height] = wa[height] - c.border_width * 2
+        g[x] = wa[x] + offset
+        g[y] = wa[y]
+        c:geometry(g)
+
+        offset = offset + g[width]
+    end
+    return offset
+end
+
+
+local function strips(p, orientation)
     local cls = p.clients
     if #cls == 0 then return end
-    local small = {
-        width = wa.width / #cls,
-        height = wa.height / #cls }
 
-    for i, c in ipairs(cls) do
-        local g = {}
-        g[width]  = small[width] - c.border_width * 2
-        g[height] = wa[height]   - c.border_width * 2
+    local t = tag.selected(p.screen)
+    local nmaster = math.min(tag.getnmaster(t), #cls)
+    local nother = math.max(#cls - nmaster,0)
 
-        g[x] = wa[x] + (i-1) * g[width]
-        g[y] = wa[y]
+    local mwfact = tag.getmwfact(t)
 
-        c:geometry(g)
-    end
+    local o = strips_group(p, orientation, {first=1, last=nmaster}, 0, mwfact)
+    strips_group(p, orientation, {first=nmaster+1, last=nmaster+nother}, o, 1)
 end
+
 
 --- Vertical strips layout.
 -- @param screen The screen to arrange.
@@ -47,6 +65,7 @@ columns.name = "columns"
 function columns.arrange(p)
     return strips(p, "south")
 end
+
 
 --- Horizontal strips layout.
 -- @param screen The screen to arrange.
