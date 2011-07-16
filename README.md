@@ -24,67 +24,79 @@ cleaner awesome/rc.lua
 
 After `require("beautiful")` and `require("vicious")`:
 
-    require('uzful')
-    uzful.util.patch.vicious() -- enable auto caching
+```lua
+require('uzful')
+uzful.util.patch.vicious() -- enable auto caching
+```
 
 use netgraphs for instance:
 
-    mynetgraphs = uzful.widget.netgraphs({
-        label_height = 13, default = "wlan0",
-        up_fgcolor = "#D00003", up_bgcolor = "#200000",
-        down_fgcolor = "#95D043", down_bgcolor = "#002000",
-        highlight = ' <span size="x-small"><b>$1</b></span>',
-        normal    = ' <span color="#666666" size="x-small">$1</span>',
-        big = { width = 161, height = 42 },
-        small = { width = 23, height = theme.menu_height } })
-    mynetgraphs.small.layout:connect_signal("button::release", mynetgraphs.switch)
-    for _, widget in ipairs(mynetgraphs.big.widgets) do
-        table.insert(detailed_graphs.widgets, widgets)
-    end
+```lua
+mynetgraphs = uzful.widget.netgraphs({
+    label_height = 13, default = "wlan0",
+    up_fgcolor = "#D00003", up_bgcolor = "#200000",
+    down_fgcolor = "#95D043", down_bgcolor = "#002000",
+    highlight = ' <span size="x-small"><b>$1</b></span>',
+    normal    = ' <span color="#666666" size="x-small">$1</span>',
+    big = { width = 161, height = 42 },
+    small = { width = 23, height = theme.menu_height } })
+mynetgraphs.small.layout:connect_signal("button::release", mynetgraphs.switch)
+for _, widget in ipairs(mynetgraphs.big.widgets) do
+    table.insert(detailed_graphs.widgets, widgets)
+end
+```
 
 as infobox you can use somthing like this:
 
-    myinfobox.net[s] = uzful.widget.wibox({ screen = s, type = "notification",
-            widget = mynetgraphs.big.layout,
-            y = theme.menu_height,
-            height = mynetgraphs.big.height,
-            width = mynetgraphs.big.width,
-            x = screen[s].geometry.width - mynetgraphs.big.width,
-            ontop = true, visible = false })
+```lua
+myinfobox.net[s] = uzful.widget.wibox({ screen = s, type = "notification",
+        widget = mynetgraphs.big.layout,
+        y = theme.menu_height,
+        height = mynetgraphs.big.height,
+        width = mynetgraphs.big.width,
+        x = screen[s].geometry.width - mynetgraphs.big.width,
+        ontop = true, visible = false })
+```
 
 or maybe a battery progressbar in an image:
 
-    mybat = uzful.widget.progressimage(
-        { x = 3, y = 4, width = 3, height = 7, image = theme.battery })
-    uzful.widget.set_properties(mybat.progress, {
-        ticks = true, ticks_gap = 1,  ticks_size = 1,
-        vertical = true, background_color = theme.bg_normal,
-        border_color = nil, color = "#FFFFFF" })
-    vicious.register(mybat.progress, vicious.widgets.bat, "$2", 45, "BAT0")
-    -- notifications
-    mycritbat = uzful.util.threshold(0.2,
-        function ()
-            mybat.progress:set_background_color(theme.bg_normal)
-        end,
-        function ()
-            mybat.progress:set_background_color("#8C0000")
-            naughty.notify({
-                preset = naughty.config.presets.critical,
-                title = "Critical Battery Charge",
-                text = "only " .. (val*100) .. "% remaining." })
-        end)
-    vicious.register(mycritbat, vicious.widgets.bat, "$2", 60, "BAT0")
+```lua
+mybat = uzful.widget.progressimage(
+    { x = 3, y = 4, width = 3, height = 7, image = theme.battery })
+uzful.widget.set_properties(mybat.progress, {
+    ticks = true, ticks_gap = 1,  ticks_size = 1,
+    vertical = true, background_color = theme.bg_normal,
+    border_color = nil, color = "#FFFFFF" })
+vicious.register(mybat.progress, vicious.widgets.bat, "$2", 45, "BAT0")
+-- notifications
+mycritbat = uzful.util.threshold(0.2,
+    function ()
+        mybat.progress:set_background_color(theme.bg_normal)
+    end,
+    function ()
+        mybat.progress:set_background_color("#8C0000")
+        naughty.notify({
+            preset = naughty.config.presets.critical,
+            title = "Critical Battery Charge",
+            text = "only " .. (val*100) .. "% remaining." })
+    end)
+vicious.register(mycritbat, vicious.widgets.bat, "$2", 60, "BAT0")
+```
 
 for more examples look at my [awesomerc](https://github.com/dodo/awesomerc).
 
 ## Install
 
-    cd $XDG_CONFIG_HOME/awesome/
-    git clone git://github.com/dodo/uzful.git
+```bash
+cd $XDG_CONFIG_HOME/awesome/
+git clone git://github.com/dodo/uzful.git
+```
 
 ## Documentation
 
-    luadoc -d doc/ *.lua
+```bash
+luadoc -d doc/ *.lua
+```
 
 for more detailed infos look into the [uzful wiki](https://github.com/dodo/uzful/wiki).
 
