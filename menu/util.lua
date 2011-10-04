@@ -16,7 +16,12 @@ module("uzful.menu.util")
 --- Layout Menu
 -- Generates a `awful.menu` with all layouts (names and icons).
 -- @param layouts list of layouts the user wants to use.
-function layouts(Layouts)
+-- @param args table with all relevant properties
+-- @param args.align if set to right the icons will be arrange on the right side of the menu
+-- @param args.width <i>(default theme.menu_width) </i> sets menu width
+function layouts(Layouts, args)
+    args = args or {}
+    args.width = args.width or theme.menu_width
     local items = {}
     local theme = beautiful.get()
     for _, layout in ipairs(Layouts) do
@@ -27,7 +32,15 @@ function layouts(Layouts)
             end,
             theme["layout_" .. layout_name] })
     end
-    return awful.menu({ items = items })
+    local menu = awful.menu({ items = items, theme = { width = args.width } })
+    if args.align == "right" then
+        for _, item in ipairs(menu.items) do
+            item.widget:reset()
+            item.widget:set_left(item.label)
+            item.widget:set_right(item.icon)
+        end
+    end
+    return menu
 end
 
 --- Widget Toggler
