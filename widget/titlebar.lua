@@ -126,9 +126,7 @@ function visiblity(bar)
     w.visible = (c.sticky or any(c:tags(), function (t) return t.selected end))
         and (   not (c.hidden     or
                      c.minimized  or
-                     c.fullscreen or
-                     c.maximized_vertical or
-                     c.maximized_horizontal)
+                     c.fullscreen )
         and awful.layout.get(c.screen) == awful.layout.suit.floating
         or  awful.client.floating.get(c) )
     c.skip_taskbar = w.visible
@@ -296,7 +294,6 @@ function new(c, args)
     signals["property::hidden"]             = set_visibility
     signals["property::minimized"]          = set_visibility
     signals["property::fullscreen"]         = set_visibility
-    signals["property::maximized_vertical"] = set_visibility
     signals["property::sticky"]   = function ()
         controls.sticky.update_image()
         ret:visiblity()
