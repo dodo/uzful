@@ -349,9 +349,7 @@ local update_titlebars = function(tag)
     end
 end
 
-for s = 1, capi.screen.count() do
-    awful.tag.attached_connect_signal(s, "property::selected", update_titlebars)
-    awful.tag.attached_connect_signal(s, "property::hide",     update_titlebars)
-end
+awful.tag.attached_connect_signal(nil, "property::selected", update_titlebars)
+awful.tag.attached_connect_signal(nil, "property::hide",     update_titlebars)
 
 setmetatable(_M, { __call = function (_, ...) return new(...) end })
