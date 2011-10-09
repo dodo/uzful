@@ -126,9 +126,11 @@ function visiblity(bar)
     w.visible = not (c.hidden     or
                      c.minimized  or
                      c.fullscreen or
-                     c.maximized_vertical)
+                     c.maximized_vertical or
+                     c.maximized_horizontal)
         and (c.sticky or any(c:tags(), function (t) return t.selected end))
-        or  (c.floating ~= nil and c.floating)
+        and awful.layout.get(c.screen) == awful.layout.suit.floating
+        or  awful.client.floating.get(c)
     c.skip_taskbar = w.visible
 end
 
