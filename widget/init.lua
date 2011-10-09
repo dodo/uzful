@@ -9,6 +9,7 @@ require("uzful.widget.netgraphs")
 require("uzful.widget.cpugraphs")
 require("uzful.widget.progressimage")
 require("uzful.widget.calendar")
+require("uzful.widget.titlebar")
 
 
 local util = require("uzful.widget.util")
