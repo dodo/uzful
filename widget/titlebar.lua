@@ -123,14 +123,14 @@ function visiblity(bar)
     local geometry = c:geometry()
     local d = bar:direction(geometry)
     local area = capi.screen[c.screen].workarea
-    w.visible = not (c.hidden     or
+    w.visible = (c.sticky or any(c:tags(), function (t) return t.selected end))
+        and (   not (c.hidden     or
                      c.minimized  or
                      c.fullscreen or
                      c.maximized_vertical or
                      c.maximized_horizontal)
-        and (c.sticky or any(c:tags(), function (t) return t.selected end))
         and awful.layout.get(c.screen) == awful.layout.suit.floating
-        or  awful.client.floating.get(c)
+        or  awful.client.floating.get(c) )
     c.skip_taskbar = w.visible
 end
 
