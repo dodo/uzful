@@ -36,7 +36,9 @@ module("uzful.widget.titlebar")
 
 
 local function coord(key, dir, geometry, size)
-    if dir == "north" then
+    if dir == nil then
+        return geometry[key]
+    elseif dir == "north" then
         if key == "x" then
             return geometry["x"]
         else
@@ -65,7 +67,9 @@ end
 
 
 local function extent(key, dir, geometry, size)
-    if dir == "north" or dir == "south" then
+    if dir == nil then
+        return geometry[key]
+    elseif dir == "north" or dir == "south" then
         if key == "width" then
             return geometry["width"]
         else
@@ -102,15 +106,40 @@ function direction(bar, geometry)
     local dir = bar._dir
     geometry = geometry or bar.client:geometry()
     if dir == "auto" then
+        local area = capi.screen[bar.client.screen].workarea
+
+        if (geometry["x"] <= 0 and
+            geometry["x"] + geometry["width" ] >= area["width" ]) or
+           (geometry["y"] <= 0 and
+            geometry["y"] + geometry["height"] >= area["height"]) then
+            return nil
+        end
+
         if geometry["width"] > geometry["height"] then
             if geometry["x"] <= 0 then
-                return "east"
+                if geometry["x"] + geometry["width"] >= area["width"] then
+                    if geometry["y"] <= 0 then
+                        return "south"
+                    else
+                        return "north"
+                    end
+                else
+                    return "east"
+                end
             else
                 return "west"
             end
         else
             if geometry["y"] <= 0 then
-                return "south"
+                if geometry["y"] + geometry["height"] >= area["height"] then
+                    if geometry["x"] <= 0 then
+                        return "east"
+                    else
+                        return "west"
+                    end
+                else
+                    return "south"
+                end
             else
                 return "north"
             end
@@ -130,13 +159,17 @@ function visiblity(bar)
     local w = bar.widget
     local geometry = c:geometry()
     local d = bar:direction(geometry)
-    local area = capi.screen[c.screen].workarea
-    w.visible = (c.sticky or any(c:tags(), function (t) return t.selected end))
-        and (   not (c.hidden     or
-                     c.minimized  or
-                     c.fullscreen )
-        and awful.layout.get(c.screen) == awful.layout.suit.floating
-        or  awful.client.floating.get(c) )
+    if d == nil then
+        w.visible = false
+    else
+        w.visible =
+            (c.sticky or any(c:tags(), function (t) return t.selected end))
+            and (not (c.hidden     or
+                      c.minimized  or
+                      c.fullscreen )
+            and awful.layout.get(c.screen) == awful.layout.suit.floating
+            or  awful.client.floating.get(c) )
+    end
     c.skip_taskbar = w.visible
 end
 
@@ -158,11 +191,14 @@ function update(bar)
     local w = bar.widget
     local geometry = bar.client:geometry()
     local d = bar:direction(geometry)
-    w.height = extent("height", d, geometry, bar.size)
-    w.width  = extent("width",  d, geometry, bar.size)
-    w.y = coord("y", d, geometry, bar.size)
-    w.x = coord("x", d, geometry, bar.size)
-    bar.rotation:set_direction(d)
+    if d ~= nil then
+        w.height = extent("height", d, geometry, bar.size)
+        w.width  = extent("width",  d, geometry, bar.size)
+        w.y = coord("y", d, geometry, bar.size)
+        w.x = coord("x", d, geometry, bar.size)
+        if d == "south" then d = "north" end
+        bar.rotation:set_direction(d)
+    end
     bar:visiblity()
 end
 
@@ -309,13 +345,17 @@ function new(c, args)
     signals["property::x"] = function ()
         local geometry = c:geometry()
         local d = ret:direction(geometry)
-        box.x = coord("x", d, geometry, size)
+        if d ~= nil then
+            box.x = coord("x", d, geometry, size)
+        end
         ret:visiblity()
     end
     signals["property::y"] = function ()
         local geometry = c:geometry()
         local d = ret:direction(geometry)
-        box.y = coord("y", d, geometry, size)
+        if d ~= nil then
+            box.y = coord("y", d, geometry, size)
+        end
         ret:visiblity()
     end
     signals["unmanage"] = function ()
