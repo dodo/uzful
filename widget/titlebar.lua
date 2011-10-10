@@ -145,11 +145,7 @@ function direction(bar, geometry)
             end
         end
     else
-        if dir == "south" then
-            return "north"
-        else
-            return dir
-        end
+       return dir
     end
 end
 
