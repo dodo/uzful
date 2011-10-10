@@ -316,6 +316,7 @@ function new(c, args)
         end
         box.visible = false
         box:set_widget(nil)
+        awful.client.property.set(c, "titlebar", nil)
     end
 
 
