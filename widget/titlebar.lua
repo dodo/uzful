@@ -103,9 +103,17 @@ function direction(bar, geometry)
     geometry = geometry or bar.client:geometry()
     if dir == "auto" then
         if geometry["width"] > geometry["height"] then
-            return "west"
+            if geometry["x"] <= 0 then
+                return "east"
+            else
+                return "west"
+            end
         else
-            return "north"
+            if geometry["y"] <= 0 then
+                return "south"
+            else
+                return "north"
+            end
         end
     else
         if dir == "south" then
