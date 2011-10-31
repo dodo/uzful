@@ -36,13 +36,15 @@ module("uzful.widget.titlebar")
 
 
 local function coord(key, dir, geometry, size)
+    local theme = beautiful.get()
+    local border = theme.titlebar_border_width or theme.border_width or 0
     if dir == nil then
         return geometry[key]
     elseif dir == "north" then
         if key == "x" then
             return geometry["x"]
         else
-            return geometry["y"] - size
+            return geometry["y"] - size - border
         end
     elseif dir == "south" then
         if key == "x" then
@@ -58,7 +60,7 @@ local function coord(key, dir, geometry, size)
         end
     elseif dir == "west"  then
         if key == "x" then
-            return geometry["x"] - size
+            return geometry["x"] - size - border
         else
             return geometry["y"]
         end
@@ -207,7 +209,11 @@ function new(c, args)
     local ret = {}
 
     local theme = beautiful.get()
-    local box = wibox(uzful.util.table.update({ type = "utility" }, args))
+    local box = wibox(uzful.util.table.update({
+        border_width = theme.titlebar_border_width or theme.border_width or 0,
+        border_color = theme.titlebar_border_normal or theme.border_normal,
+        type = "utility",
+    }, args))
     ret.widget = box
     ret.client = c
 
