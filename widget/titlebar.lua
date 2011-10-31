@@ -179,9 +179,11 @@ function color(bar, args)
     if capi.client.focus == bar.client then
         w:set_fg(args.fg_focus or theme.titlebar_fg_focus or theme.fg_focus)
         w:set_bg(args.bg_focus or theme.titlebar_bg_focus or theme.bg_focus)
+        w.border_color = args.border_focus or theme.titlebar_border_focus or theme.border_focus
     else
         w:set_fg(args.fg_normal or theme.titlebar_fg_normal or theme.fg_normal)
         w:set_bg(args.bg_normal or theme.titlebar_bg_normal or theme.bg_normal)
+        w.border_color = args.border_normal or theme.titlebar_border_normal or theme.border_normal
     end
 end
 
