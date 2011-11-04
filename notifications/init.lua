@@ -23,9 +23,11 @@ module("uzful.notifications")
 data = {}
 
 function patch()
-    local notification = naughty.notify
+    local notify = naughty.notify
     naughty.notify = function (args)
-        update(notification(args), args)
+        local notification = notify(args)
+        update(notification, args)
+        return notification
     end
 end
 
