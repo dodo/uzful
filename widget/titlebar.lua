@@ -106,21 +106,24 @@ end
 
 function direction(bar, geometry)
     local dir = bar._dir
-    geometry = geometry or bar.client:geometry()
     if dir == "auto" then
+        geometry = geometry or bar.client:geometry()
         local area = capi.screen[bar.client.screen].workarea
+        local out = {
+            top    = geometry["y"] < bar.size,
+            left   = geometry["x"] < bar.size,
+            right  = geometry["x"] + geometry["width" ] + bar.size > area["width" ],
+            bottom = geometry["y"] + geometry["height"] + bar.size > area["height"],
+        }
 
-        if (geometry["x"] <= 0 and
-            geometry["x"] + geometry["width" ] >= area["width" ]) or
-           (geometry["y"] <= 0 and
-            geometry["y"] + geometry["height"] >= area["height"]) then
+        if (out.left and out.right) or (out.top and out.bottom) then
             return nil
         end
 
         if geometry["width"] > geometry["height"] then
-            if geometry["x"] <= 0 then
-                if geometry["x"] + geometry["width"] >= area["width"] then
-                    if geometry["y"] <= 0 then
+            if out.left then
+                if out.right then
+                    if out.top then
                         return "south"
                     else
                         return "north"
@@ -132,9 +135,9 @@ function direction(bar, geometry)
                 return "west"
             end
         else
-            if geometry["y"] <= 0 then
-                if geometry["y"] + geometry["height"] >= area["height"] then
-                    if geometry["x"] <= 0 then
+            if out.top then
+                if out.bottom then
+                    if out.left then
                         return "east"
                     else
                         return "west"
@@ -350,7 +353,7 @@ function new(c, args)
         local geometry = c:geometry()
         local d = ret:direction(geometry)
         if d ~= nil then
-            box.x = coord("x", d, geometry, size)
+            box.x = coord("x", d, geometry, ret.size)
         end
         ret:visiblity()
     end
@@ -358,7 +361,7 @@ function new(c, args)
         local geometry = c:geometry()
         local d = ret:direction(geometry)
         if d ~= nil then
-            box.y = coord("y", d, geometry, size)
+            box.y = coord("y", d, geometry, ret.size)
         end
         ret:visiblity()
     end
