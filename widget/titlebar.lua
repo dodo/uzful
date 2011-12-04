@@ -322,9 +322,9 @@ function new(c, args)
     rot:set_widget(f)
     box:set_widget(rot)
 
-    box:connect_signal("mouse::enter", function ()
+    rot:buttons(awful.button({ }, 1, function ()
         capi.client.focus = c
-    end)
+    end))
 
     local signals = {}
     signals["property::icon"]     = function () ib:set_image(c.icon)             end
