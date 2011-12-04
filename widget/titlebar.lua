@@ -16,6 +16,8 @@ local pcall = pcall
 local type = type
 local print = print
 local setmetatable = setmetatable
+local Mirror = {east = "west", west = "east",
+                south = "north", north = "south"}
 local capi =
 {
     client = client,
@@ -106,6 +108,7 @@ end
 
 function direction(bar, geometry)
     local dir = bar._dir
+    local mirrored = bar._mirrored
     if dir == "auto" then
         geometry = geometry or bar.client:geometry()
         local area = capi.screen[bar.client.screen].workarea
@@ -126,13 +129,25 @@ function direction(bar, geometry)
                     if out.top then
                         return "south"
                     else
-                        return "north"
+                        if mirrored and not out.bottom then
+                            return "south"
+                        else
+                            return "north"
+                        end
                     end
                 else
-                    return "east"
+                    if mirrored and not out.left then
+                        return "west"
+                    else
+                        return "east"
+                    end
                 end
             else
-                return "west"
+                if mirrored and not out.right then
+                    return "east"
+                else
+                    return "west"
+                end
             end
         else
             if out.top then
@@ -140,18 +155,36 @@ function direction(bar, geometry)
                     if out.left then
                         return "east"
                     else
-                        return "west"
+                        if mirrored and not out.right then
+                            return "east"
+                        else
+                            return "west"
+                        end
                     end
                 else
-                    return "south"
+                    if mirrored and not out.top then
+                        return "north"
+                    else
+                        return "south"
+                    end
                 end
             else
-                return "north"
+                if mirrored and not out.bottom then
+                    return "south"
+                else
+                    return "north"
+                end
             end
         end
     else
        return dir
     end
+end
+
+
+function toggle(bar)
+    bar._mirrored = not bar._mirrored
+    bar:update()
 end
 
 
@@ -223,9 +256,11 @@ function new(c, args)
     ret.client = c
 
     local dir = args.dir or "auto"
+    local mirrored = args.mirror or false
     local size = args.size or theme.menu_height
     ret.size = size
     ret._dir = dir
+    ret._mirrored = mirrored
 
     local rot, ib, tb, m, l, r, f, buttons
 
@@ -379,7 +414,7 @@ function new(c, args)
         c:connect_signal(signal, callback)
     end
 
-    for _, k in ipairs({"visiblity", "update", "color", "direction"}) do
+    for _, k in ipairs({"visiblity", "update", "color", "direction", "toggle"}) do
         ret[k] = _M[k]
     end
 
@@ -399,6 +434,14 @@ local update_titlebars = function(tag)
         if bar ~= nil then
             bar:visiblity()
         end
+    end
+end
+
+-- mirror the titlebar to the other side
+function mirror(c)
+    local bar = awful.client.property.get(c, "titlebar")
+    if bar ~= nil then
+        bar:toggle()
     end
 end
 
