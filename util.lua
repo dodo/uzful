@@ -4,6 +4,7 @@
 -- @release v3.4-503-g4972a28
 --------------------------------------------------------------------------------
 
+local io = require("io")
 local obvious = {}
 local require = require
 local vicious = require("vicious")
@@ -113,3 +114,16 @@ function functionlist(list)
         prev = function () current  = current == 1 and #list or current - 1 end,
     }
 end
+
+
+--- Get program output as lines
+-- similar to io.lines but works with io.popen instead of io.open
+function proglines(...)
+    local f = io.popen(...)
+    return function () -- iterator
+        local data = f:read()
+        if data == nil then f:close() end
+        return data
+    end
+end
+
