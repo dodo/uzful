@@ -1,4 +1,4 @@
--- I'm want to be you savery
+-- I want to be your savery
 
 local print = print
 local type = type
