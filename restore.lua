@@ -15,7 +15,6 @@ local capi = {
     awesome = awesome,
     screen = screen,
     client = client,
-    tags = tags,
 }
 
 local layouts = {}
@@ -275,7 +274,7 @@ function connect(Layouts)
             update_window('set', client, window)
             -- get all tag userdatas
             local tags = {}
-            local capitags = capi.tags[client.screen]
+            local capitags = capi.screen[client.screen]:tags()
             for _, t in ipairs(window.tags or {}) do
                 table.insert(tags, capitags[t])
             end
