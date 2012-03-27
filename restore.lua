@@ -121,6 +121,14 @@ local function update_window(cmd, client, data)
 end
 
 
+local function get_command(pid)
+    local f = io.popen("ps --no-headers o args " .. pid, "r")
+    local ret = f:read() or ""
+    f:close()
+    return ret
+end
+
+
 function disconnect()
     local data = {}
     for s = 1, capi.screen.count() do
@@ -134,15 +142,14 @@ function disconnect()
     data.windows = {} -- always override last windows history
     for _, client in ipairs(capi.client.get(--[[all]])) do
         if client.pid ~= 0 then
-            local window = update_window('get', client, { tags = {} })
+            local window = update_window('get', client, {
+                command = get_command(client.pid),
+                tags = {},
+            })
             -- get tags numbers
             for _, tag in ipairs(client:tags()) do
                 table.insert(window.tags, awful.tag.getidx(tag))
             end
-            -- get command
-            local f = io.popen("ps --no-headers o args " .. client.pid, "r")
-            window.command = f:read() or ""
-            f:close()
             -- save
             table.insert(data.windows, window)
         end
@@ -275,6 +282,20 @@ function connect(Layouts)
 
     capi.client.connect_signal("manage", function (client)
         local window = data.pids[client.pid]
+        if window == nil then
+            local cmd = get_command(client.pid)
+            for pid, entry in pairs(data.pids) do
+                if entry.window.command == cmd then
+                    window = entry
+                    window.window.pid = client.pid
+                    data.pids[pid] = nil
+                    data.pids[client.pid] = entry
+                    ret[client.screen][pid] = nil
+                    ret[client.screen][client.pid] = entry
+                    break
+                end
+            end
+        end
         if window ~= nil then
             window = window.window
             print("alife!",client.pid,window.command)
