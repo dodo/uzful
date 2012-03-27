@@ -20,6 +20,20 @@ local layouts = {}
 
 module('uzful.restore') -- savery
 
+--- example usage
+-- myrestorelist = uzful.restore(layouts)
+-- for s = 1, screen.count() do
+--     myrestorelist[s].widget = uzful.widget.infobox({ screen = s,
+--             size = function () return myrestorelist[s].fit() end,
+--             position = "top", align = "left",
+--             visible = true, ontop = false,
+--             widget = myrestorelist[s].layout })
+--     myrestorelist[s].layout:connect_signal("widget::updated", function ()
+--         myrestorelist[s].widget:update()
+--     end)
+-- end
+
+
 local table2string
 local function lualine(value, key, indent)
     local res = indent
