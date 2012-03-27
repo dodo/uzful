@@ -133,17 +133,19 @@ function disconnect()
     end
     data.windows = {} -- always override last windows history
     for _, client in ipairs(capi.client.get(--[[all]])) do
-        local window = update_window('get', client, { tags = {} })
-        -- get tags numbers
-        for _, tag in ipairs(client:tags()) do
-            table.insert(window.tags, awful.tag.getidx(tag))
+        if client.pid ~= 0 then
+            local window = update_window('get', client, { tags = {} })
+            -- get tags numbers
+            for _, tag in ipairs(client:tags()) do
+                table.insert(window.tags, awful.tag.getidx(tag))
+            end
+            -- get command
+            local f = io.popen("ps --no-headers o args " .. client.pid, "r")
+            window.command = f:read() or ""
+            f:close()
+            -- save
+            table.insert(data.windows, window)
         end
-        -- get command
-        local f = io.popen("ps --no-headers o args " .. client.pid, "r")
-        window.command = f:read() or ""
-        f:close()
-        -- save
-        table.insert(data.windows, window)
     end
 
 
