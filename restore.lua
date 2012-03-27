@@ -101,7 +101,9 @@ local function update_window(cmd, client, data)
         if cmd == 'get' or data[prop] == nil then
             data[prop] = client[prop]
         elseif cmd == 'set' then
-            client[prop] = data[prop]
+            if prop ~= "pid" then
+                client[prop] = data[prop]
+            end
         end
     end
     for _,prop in ipairs({"floating","floating_geometry","sticky","ontop","minimized","maximized","hidden","fullscreen","modal","maximized_horizontal","maximized_vertical","skip_taskbar"}) do
