@@ -251,6 +251,7 @@ function connect(Layouts)
     end
 
     for pid, window in pairs(data.pids) do
+        window.command = window.command or ""
         local entry = {
             window = window,
             text = wibox.widget.textbox(),
