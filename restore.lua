@@ -10,6 +10,7 @@ local setmetatable = setmetatable
 local io = require('io')
 local awful = require('awful')
 local wibox = require('wibox')
+local beautiful = require("beautiful")
 local capi = {
     awesome = awesome,
     screen = screen,
@@ -147,6 +148,28 @@ function disconnect()
 end
 
 
+local function create_control(text, callback)
+    local theme = beautiful.get()
+    local ret = wibox.widget.textbox()
+    ret:set_align("center")
+    ret:set_text(text)
+    local bg  = wibox.widget.background()
+    bg:set_widget(ret)
+    bg:set_fg(theme.fg_normal)
+    bg:set_bg(theme.bg_normal)
+    ret:connect_signal("mouse::enter", function ()
+        bg:set_fg(theme.fg_focus)
+        bg:set_bg(theme.bg_focus)
+    end)
+    ret:connect_signal("mouse::leave", function ()
+        bg:set_fg(theme.fg_normal)
+        bg:set_bg(theme.bg_normal)
+    end)
+    ret:buttons(awful.button({ }, 1, callback))
+    return bg
+end
+
+
 function connect(Layouts)
     for _, layout in ipairs(Layouts) do
         layouts[awful.layout.getname(layout)] = layout
@@ -178,12 +201,23 @@ function connect(Layouts)
 
         ret[s] = setmetatable({
             layout = wibox.layout.flex.vertical(),
+            controls = wibox.layout.flex.horizontal(),
             length = 0,
             fit = function ()
-                local h = ret[s].length * 12
-                return 242, (h == 0 and 1 or h)
+                return 242, ((ret[s].length + 1) * 12)
             end,
         }, { __mode = 'k' })
+        ret[s].controls:add(create_control("ignore", function ()
+            ret[s].length = 0
+            for pid, _ in pairs(data.pids) do
+                data.pids[pid] = nil
+            end
+            ret[s].layout:reset()
+        end))
+        ret[s].controls:add(create_control("spawn", function ()
+            -- spawn new process here and update pid at every place
+        end))
+        ret[s].layout:add(ret[s].controls)
     end
 
     if data.windows == nil then
@@ -215,8 +249,9 @@ function connect(Layouts)
             update_window('set', client, window)
             local w = ret[client.screen]
             data.pids[client.pid] = nil
-            w.layout:reset()
             w.length = w.length - 1
+            w.layout:reset()
+            w.layout:add(w.controls)
             for _,c in pairs(data.pids) do
                 w.layout:add(c.text)
             end
