@@ -23,14 +23,19 @@ module('uzful.restore') -- savery
 
 --- example usage
 -- myrestorelist = uzful.restore(layouts)
--- for s = 1, screen.count() do
+-- if myrestorelist[s].length > 0 then
 --     myrestorelist[s].widget = uzful.widget.infobox({ screen = s,
 --             size = function () return myrestorelist[s].fit() end,
 --             position = "top", align = "left",
---             visible = true, ontop = false,
+--             visible = true, ontop = true,
 --             widget = myrestorelist[s].layout })
 --     myrestorelist[s].layout:connect_signal("widget::updated", function ()
---         myrestorelist[s].widget:update()
+--         if myrestorelist[s].length == 0 then
+--                 myrestorelist[s].widget:hide()
+--                 myrestorelist[s].widget.screen = nil
+--         else
+--             myrestorelist[s].widget:update()
+--         end
 --     end)
 -- end
 
