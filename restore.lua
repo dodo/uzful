@@ -159,6 +159,7 @@ function connect(Layouts)
         f:close()
         data = require('savepoint')
     end
+    data.pids = {}
 
     capi.awesome.connect_signal("exit", disconnect)
 
@@ -187,7 +188,6 @@ function connect(Layouts)
     if data.windows == nil then
         data.windows = {}
     else
-        data.pids = {}
         for _,window in ipairs(data.windows) do
             data.pids[window.pid] = window
         end
