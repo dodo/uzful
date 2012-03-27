@@ -227,17 +227,17 @@ function connect(Layouts)
             for pid, _ in pairs(data.pids) do
                 local entry = data.pids[pid]
                 local spawn = awful.util.spawn(entry.window.command)
-                if type(spawn) == "string" then
-                    -- fails
-                    ret[s].length = ret[s].length - 1
-                    entry.text:set_text(spawn)
-                else
+                if type(spawn) == "number" then
                     entry.text:set_text(spawn .. "\t" .. entry.window.command)
                     data.pids[pid] = nil
                     entry.window.pid = spawn
                     pids[spawn] = entry
                     ret[entry.window.screen][pid] = nil
                     ret[entry.window.screen][spawn] = entry
+                else
+                    -- fails
+                    ret[s].length = ret[s].length - 1
+                    entry.text:set_text(spawn or "broken")
                 end
             end
             data.pids = pids
