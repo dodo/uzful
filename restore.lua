@@ -133,7 +133,7 @@ function disconnect()
         end
         -- get command
         local f = io.popen("ps --no-headers o args " .. client.pid, "r")
-        window.command = f:read()
+        window.command = f:read() or ""
         f:close()
         -- save
         table.insert(data.windows, window)
@@ -207,15 +207,37 @@ function connect(Layouts)
                 return 242, ((ret[s].length + 1) * 12)
             end,
         }, { __mode = 'k' })
-        ret[s].controls:add(create_control("ignore", function ()
+        local ignorecontrol = create_control("ignore", function ()
             ret[s].length = 0
             for pid, _ in pairs(data.pids) do
                 data.pids[pid] = nil
             end
             ret[s].layout:reset()
-        end))
+        end)
+        ret[s].controls:add(ignorecontrol)
         ret[s].controls:add(create_control("spawn", function ()
+            -- remove spawncontrol to disable retry
+            ret[s].controls:reset()
+            ret[s].controls:add(ignorecontrol)
             -- spawn new process here and update pid at every place
+            local pids = {}
+            for pid, _ in pairs(data.pids) do
+                local entry = data.pids[pid]
+                local spawn = awful.util.spawn(entry.window.command)
+                if type(spawn) == "string" then
+                    -- fails
+                    ret[s].length = ret[s].length - 1
+                    entry.text:set_text(spawn)
+                else
+                    entry.text:set_text(spawn .. "\t" .. entry.window.command)
+                    data.pids[pid] = nil
+                    entry.window.pid = spawn
+                    pids[spawn] = entry
+                    ret[entry.window.screen][pid] = nil
+                    ret[entry.window.screen][spawn] = entry
+                end
+            end
+            data.pids = pids
         end))
         ret[s].layout:add(ret[s].controls)
     end
