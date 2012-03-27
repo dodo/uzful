@@ -5,6 +5,7 @@ local type = type
 local pairs = pairs
 local ipairs = ipairs
 local table = table
+local require = require
 local setmetatable = setmetatable
 local io = require('io')
 local awful = require('awful')
@@ -15,13 +16,6 @@ local capi = {
 }
 
 local layouts = {}
-print "* load savepoint"
-local savepoint = {}
-local f = io.open(awful.util.getdir("config") .. "/savepoint.lua")
-if f ~= nil then
-    f:close()
-    savepoint = require('savepoint')
-end
 
 module('uzful.restore') -- savery
 
@@ -106,15 +100,16 @@ end
 
 
 function disconnect()
+    local data = {}
     for s = 1, capi.screen.count() do
         local screen = capi.screen[s]
-        local screendata = savepoint[s]
+        local screendata = data[s]
         for t,tag in ipairs(screen:tags()) do
             local tagdata = screendata[t]
             update_tag('get', tag, tagdata)
         end
     end
-    savepoint.windows = {} -- always override last windows history
+    data.windows = {} -- always override last windows history
     for _, client in ipairs(capi.client.get(--[[all]])) do
         local window = {
             tags = {},
@@ -132,15 +127,15 @@ function disconnect()
         for _, tag in ipairs(client:tags()) do
             table.insert(window.tags, awful.tag.getidx(tag))
         end
-        table.insert(savepoint.windows, window)
+        table.insert(data.windows, window)
     end
 
 
     print "* write savepoint"
     local f = io.open(awful.util.getdir("config") .. "/savepoint.lua", "w+")
-    f:write("return " .. table2string(savepoint, ""))
+    f:write("return " .. table2string(data, ""))
     f:close()
- 
+
 end
 
 
@@ -149,19 +144,26 @@ function connect(Layouts)
         layouts[awful.layout.getname(layout)] = layout
     end
 
+    print "* load savepoint"
+    local data = {}
+    local f = io.open(awful.util.getdir("config") .. "/savepoint.lua")
+    if f ~= nil then
+        f:close()
+        data = require('savepoint')
+    end
 
     capi.awesome.connect_signal("exit", disconnect)
 
     -- make sure, that we have at least a screen and tag structure
-    if savepoint.windows == nil then
-        savepoint.windows = {}
+    if data.windows == nil then
+        data.windows = {}
     end
     for s = 1, capi.screen.count() do
         local screen = capi.screen[s]
-        local screendata = savepoint[s]
+        local screendata = data[s]
         if screendata == nil then
             screendata = {}
-            savepoint[s] = screendata
+            data[s] = screendata
         end
         for t,tag in ipairs(screen:tags()) do
             local tagdata = update_tag('set', tag, screendata[t])
