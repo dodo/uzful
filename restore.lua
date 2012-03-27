@@ -55,22 +55,6 @@ table2string = function (t, indent)
     return res .. indent .. "}"
 end
 
-
-local test = {
-    { -- screen 1
-        { -- tag 1
-            layout = "tileleft",
-            { -- window 1
-                geometry = {x = 0, y = 0, width = 100, height = 100 },
-            },
-            { -- window 2
-            },
-        },
-        { -- tag 2
-        },
-    },
-}
-
 local function update_tag(cmd, tag, data)
     if cmd == 'set' then
         if data == nil then
