@@ -180,7 +180,8 @@ function connect(Layouts)
             layout = wibox.layout.flex.vertical(),
             length = 0,
             fit = function ()
-                return 242, (ret[s].length * 12)
+                local h = ret[s].length * 12
+                return 242, (h == 0 and 1 or h)
             end,
         }, { __mode = 'k' })
     end
