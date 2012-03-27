@@ -15,6 +15,7 @@ local capi = {
     awesome = awesome,
     screen = screen,
     client = client,
+    tags = tags,
 }
 
 local layouts = {}
@@ -270,6 +271,14 @@ function connect(Layouts)
             window = window.window
             print("alife!",client.pid,window.command)
             update_window('set', client, window)
+            -- get all tag userdatas
+            local tags = {}
+            local capitags = capi.tags[client.screen]
+            for _, t in ipairs(window.tags or {}) do
+                table.insert(tags, capitags[t])
+            end
+            client:tags(tags)
+
             local w = ret[client.screen]
             data.pids[client.pid] = nil
             w.length = w.length - 1
