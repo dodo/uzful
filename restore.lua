@@ -232,7 +232,7 @@ function connect(Layouts)
             local pids = {}
             for pid, _ in pairs(data.pids) do
                 local entry = data.pids[pid]
-                local spawn = awful.util.spawn(entry.window.command)
+                local spawn = awful.util.spawn(entry.window.command, true, entry.window.screen)
                 if type(spawn) == "number" then
                     entry.text:set_text(spawn .. "\t" .. entry.window.command)
                     data.pids[pid] = nil
