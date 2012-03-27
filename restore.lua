@@ -9,6 +9,7 @@ local require = require
 local setmetatable = setmetatable
 local io = require('io')
 local awful = require('awful')
+local wibox = require('wibox')
 local capi = {
     awesome = awesome,
     screen = screen,
@@ -147,6 +148,7 @@ function connect(Layouts)
 
     capi.awesome.connect_signal("exit", disconnect)
 
+    local ret = {}
     -- make sure, that we have at least a screen and tag structure
     for s = 1, capi.screen.count() do
         local screen = capi.screen[s]
@@ -158,7 +160,15 @@ function connect(Layouts)
         for t,tag in ipairs(screen:tags()) do
             screendata[t] = update_tag('set', tag, screendata[t])
         end
-   end
+
+        ret[s] = setmetatable({
+            layout = wibox.layout.flex.vertical(),
+            length = 0,
+            fit = function ()
+                return 242, (ret[s].length * 12)
+            end,
+        }, { __mode = 'k' })
+    end
 
     if data.windows == nil then
         data.windows = {}
@@ -169,20 +179,36 @@ function connect(Layouts)
         end
     end
 
+    for pid, window in pairs(data.pids) do
+        local entry = {
+            window = window,
+            text = wibox.widget.textbox(),
+        }
+        local w = ret[window.screen]
+        entry.text:set_text(window.pid .. "\t" .. window.command)
+        w.length = w.length + 1
+        w.layout:add(entry.text)
+        w[window.pid] = entry
+        data.pids[window.pid] = entry -- kill switch
+    end
+
     capi.client.connect_signal("manage", function (client)
         local window = data.pids[client.pid]
         if window ~= nil then
+            window = window.window
             print("alife!",client.pid,window.command)
             update_window('set', client, window)
+            local w = ret[client.screen]
             data.pids[client.pid] = nil
+            w.layout:reset()
+            w.length = w.length - 1
+            for _,c in pairs(data.pids) do
+                w.layout:add(c.text)
+            end
         end
     end)
 
-
-    for pid, window in pairs(data.pids) do
-        print("dead",pid,window.command)
-    end
-
+    return ret
 end
 
 setmetatable(_M, { __call = function (_, ...) return connect(...) end })
