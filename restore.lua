@@ -50,10 +50,8 @@ table2string = function (t, indent)
 end
 
 local function update_tag(cmd, tag, data)
-    if cmd == 'set' then
-        if data == nil then
-            data = {}
-        end
+    if data == nil then
+        data = {}
     end
     for _,prop in ipairs({"layout","mwfact","ncol","nmaster","windowfact"}) do
         if cmd == 'get' or data[prop] == nil then
@@ -74,9 +72,26 @@ end
 
 
 local function update_window(cmd, client, data)
-    if cmd == 'set' then
-        if data == nil  then
-            data = {}
+    if data == nil then
+        data = {}
+    end
+    if cmd == 'set' and data.geometry ~= nil then
+        client:geometry(data.geometry)
+    elseif cmd == 'get' then
+        data.geometry = client:geometry()
+    end
+    for _,prop in ipairs({"screen","instance","pid"}) do
+        if cmd == 'get' or data[prop] == nil then
+            data[prop] = client[prop]
+        elseif cmd == 'set' then
+            client[prop] = data[prop]
+        end
+    end
+    for _,prop in ipairs({"floating","floating_geometry","sticky","ontop","minimized","maximized","hidden","fullscreen","modal","maximized_horizontal","maximized_vertical","skip_taskbar"}) do
+        if cmd == 'get' or data[prop] == nil then
+            data[prop] = awful.client.property.get(client, prop)
+        elseif cmd == 'set' then
+            awful.client.property.set(client, prop, data[prop])
         end
     end
     return data
@@ -87,30 +102,24 @@ function disconnect()
     local data = {}
     for s = 1, capi.screen.count() do
         local screen = capi.screen[s]
-        local screendata = data[s]
+        local screendata = data[s] or {}
+        data[s] = screendata
         for t,tag in ipairs(screen:tags()) do
-            local tagdata = screendata[t]
-            update_tag('get', tag, tagdata)
+            screendata[t] = update_tag('get', tag, screendata[t])
         end
     end
     data.windows = {} -- always override last windows history
     for _, client in ipairs(capi.client.get(--[[all]])) do
-        local window = {
-            tags = {},
-            screen = client.screen,
-            instance = client.instance,
-            pid = client.pid,
-            geometry = client:geometry(),
-        }
-        local f = io.popen("ps --no-headers o args " .. client.pid, "r")
-        window.command = f:read()
-        f:close()
-        for _, prop in ipairs({"floating","floating_geometry","sticky","ontop","minimized","maximized","hidden","fullscreen","modal","maximized_horizontal","maximized_vertical","skip_taskbar"}) do
-            window[prop] = awful.client.property.get(client, prop)
-        end
+        local window = update_window('get', client, { tags = {} })
+        -- get tags numbers
         for _, tag in ipairs(client:tags()) do
             table.insert(window.tags, awful.tag.getidx(tag))
         end
+        -- get command
+        local f = io.popen("ps --no-headers o args " .. client.pid, "r")
+        window.command = f:read()
+        f:close()
+        -- save
         table.insert(data.windows, window)
     end
 
@@ -139,9 +148,6 @@ function connect(Layouts)
     capi.awesome.connect_signal("exit", disconnect)
 
     -- make sure, that we have at least a screen and tag structure
-    if data.windows == nil then
-        data.windows = {}
-    end
     for s = 1, capi.screen.count() do
         local screen = capi.screen[s]
         local screendata = data[s]
@@ -150,15 +156,32 @@ function connect(Layouts)
             data[s] = screendata
         end
         for t,tag in ipairs(screen:tags()) do
-            local tagdata = update_tag('set', tag, screendata[t])
-            screendata[t] = tagdata
+            screendata[t] = update_tag('set', tag, screendata[t])
         end
    end
 
-    -- start process again
-    --for _, client in ipairs(capi.client.get(--[[all]])) do
-    --    local screendata = savepoint[client.screen]
-    --end
+    if data.windows == nil then
+        data.windows = {}
+    else
+        data.pids = {}
+        for _,window in ipairs(data.windows) do
+            data.pids[window.pid] = window
+        end
+    end
+
+    capi.client.connect_signal("manage", function (client)
+        local window = data.pids[client.pid]
+        if window ~= nil then
+            print("alife!",client.pid,window.command)
+            update_window('set', client, window)
+            data.pids[client.pid] = nil
+        end
+    end)
+
+
+    for pid, window in pairs(data.pids) do
+        print("dead",pid,window.command)
+    end
 
 end
 
