@@ -105,6 +105,9 @@ local function update_window(cmd, client, data)
         if cmd == 'get' or data[prop] == nil then
             data[prop] = client[prop]
         elseif cmd == 'set' then
+            if prop == "screen" and data.screen > capi.screen.count() then
+                data.screen = capi.screen.count()
+            end
             if prop ~= "pid" then
                 client[prop] = data[prop]
             end
@@ -263,6 +266,9 @@ function connect(Layouts)
     else
         for _,window in ipairs(data.windows) do
             data.pids[window.pid] = window
+            if window.screen > capi.screen.count() then
+                window.screen = capi.screen.count()
+            end
         end
     end
 
