@@ -160,7 +160,7 @@ function disconnect()
 
 
     print "* write savepoint"
-    local f = io.open(awful.util.getdir("config") .. "/savepoint.lua", "w+")
+    local f = io.open(awful.util.getdir("config") .. "/.savepoint.lua", "w+")
     f:write("return " .. table2string(data, ""))
     f:close()
 
@@ -196,10 +196,10 @@ function connect(Layouts)
 
     print "* load savepoint"
     local data = {}
-    local f = io.open(awful.util.getdir("config") .. "/savepoint.lua")
+    local f = io.open(awful.util.getdir("config") .. "/.savepoint.lua")
     if f ~= nil then
         f:close()
-        data = require('savepoint')
+        data = require('.savepoint')
     end
     data.pids = {}
 
