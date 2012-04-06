@@ -9,7 +9,10 @@ local Wibox = require("wibox")
 local setmetatable = setmetatable
 local pairs = pairs
 local type = type
-local capi = { screen = screen }
+local capi = {
+    screen = screen,
+    mouse = mouse,
+}
 
 module("uzful.widget.util")
 
@@ -62,7 +65,7 @@ function infobox(args)
     local position = args.position or "top"
 
     ret.update = function ()
-        local screen = screen or box.screen or 1
+        local screen = screen or box.screen or capi.mouse.screen or 1
         local area = capi.screen[screen].workarea
 
         if size and type(size) == "function" then
