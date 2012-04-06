@@ -5,6 +5,7 @@ local type = type
 local pairs = pairs
 local ipairs = ipairs
 local table = table
+local string = string
 local require = require
 local setmetatable = setmetatable
 local io = require('io')
@@ -117,14 +118,22 @@ local function update_window(cmd, client, data)
         if cmd == 'get' or data[prop] == nil then
             data[prop] = awful.client.property.get(client, prop)
         elseif cmd == 'set' then
-            awful.client.property.set(client, prop, data[prop])
+            if prop ~= "floating_geometry" then
+                awful.client.property.set(client, prop, data[prop])
+            end
         end
+    end
+    if cmd == 'set' and client.floating and data.floating_geometry ~= nil then
+        client:geometry(data.floating_geometry)
     end
     return data
 end
 
 
 local function get_command(pid)
+    if pid == 0 then
+        return ""
+    end
     local f = io.popen("ps --no-headers o args " .. pid, "r")
     local ret = f:read() or ""
     f:close()
@@ -132,12 +141,37 @@ local function get_command(pid)
 end
 
 
-function disconnect()
+-- load savepoint data and prepare it as always same looking data structure
+local function load(filename)
+    print "* load savepoint"
     local data = {}
+    local f = io.open(awful.util.getdir("config") .. "/" .. filename .. ".lua") -- FIXME
+    if f ~= nil then
+        f:close()
+        data = require(filename)
+    end
+
+    return data
+end
+
+local function get_tag_numbers(tags)
+    local ret = {}
+    -- get tags numbers
+    for _, tag in ipairs(tags) do
+        table.insert(ret, awful.tag.getidx(tag))
+    end
+    return ret
+end
+
+
+function disconnect()
+    local filename = "_savepoint"
+    local data = load(filename)
     for s = 1, capi.screen.count() do
         local screen = capi.screen[s]
         local screendata = data[s] or {}
         data[s] = screendata
+        screendata.tags = get_tag_numbers(awful.tag.selectedlist(s))
         for t,tag in ipairs(screen:tags()) do
             screendata[t] = update_tag('get', tag, screendata[t])
         end
@@ -146,13 +180,10 @@ function disconnect()
     for _, client in ipairs(capi.client.get(--[[all]])) do
         if client.pid ~= 0 then
             local window = update_window('get', client, {
+                tags = get_tag_numbers(client:tags()),
                 command = get_command(client.pid),
-                tags = {},
+                id = client.window,
             })
-            -- get tags numbers
-            for _, tag in ipairs(client:tags()) do
-                table.insert(window.tags, awful.tag.getidx(tag))
-            end
             -- save
             table.insert(data.windows, window)
         end
@@ -160,7 +191,7 @@ function disconnect()
 
 
     print "* write savepoint"
-    local f = io.open(awful.util.getdir("config") .. "/.savepoint.lua", "w+")
+    local f = io.open(awful.util.getdir("config") .. "/" .. filename .. ".lua", "w+")
     f:write("return " .. table2string(data, ""))
     f:close()
 
@@ -188,24 +219,101 @@ local function create_control(text, callback)
     return bg
 end
 
+local function format_window_info(win)
+    return ""..win.pid.. string.rep(" ",7-string.len(""..win.pid))..win.command
+end
+
+local function create_screen_info(screen)
+    local ret
+    ret = {
+        layout = wibox.layout.flex.vertical(),
+        controls = wibox.layout.flex.horizontal(),
+        windows = setmetatable({}, {__mode = 'v'}),
+        length = 0,
+        fit = function ()
+            print("h",((ret.length + 1) * 12))
+            return 242, ((ret.length + 1) * 12)
+        end,
+        rebuild = function ()
+            local l = ret.layout
+            l:reset()
+            l:add(ret.controls)
+            -- TODO show only from current tags
+            for id,win in pairs(ret.windows) do
+                if not win._removed then
+                    l:add(win.text)
+                end
+            end
+        end,
+    }
+
+    local ignorecontrol = create_control("ignore", function ()
+        ret.length = 0
+        for _, win in pairs(ret.windows) do
+            win.remove()
+        end
+        ret.layout:reset()
+    end)
+    ret.controls:add(ignorecontrol)
+    ret.controls:add(create_control("spawn", function ()
+        -- remove spawncontrol to disable retry
+        ret.controls:reset()
+        ret.controls:add(ignorecontrol)
+        -- spawn new process here and update pid at every place
+        for _, win in pairs(ret.windows) do
+            local spawn = awful.util.spawn(win.command, true, win.screen)
+            print("spawn",win.command,win.screen,win.pid,"->  "..spawn)
+            if type(spawn) == "number" then
+                win.pid = spawn
+                win.text:set_text(format_window_info(win))
+            else
+                -- fails
+                ret.length = ret.length - 1
+                win.text:set_text(spawn or "broken" .. " " .. win.command)
+            end
+        end
+    end))
+
+    ret.layout:add(ret.controls)
+    return ret
+end
+
+local function create_window(data, win)
+    local count = capi.screen.count()
+    win = win or {}
+    if win.screen > count then
+        win.screen = count
+    end
+    win.command = win.command or ""
+    win.text = wibox.widget.textbox()
+    win.text:set_text(format_window_info(win))
+    win.remove = function ()
+        data.ids[win.id] = nil
+        win._removed = true
+    end
+    return win
+end
+
+local function get_tags(tags, screen)
+    -- get all tag userdatas
+    local ret = {}
+    local capitags = capi.screen[screen or 1]:tags()
+    for _, t in ipairs(tags or {}) do
+        table.insert(ret, capitags[t])
+    end
+    return ret
+end
 
 function connect(Layouts)
     for _, layout in ipairs(Layouts) do
         layouts[awful.layout.getname(layout)] = layout
     end
 
-    print "* load savepoint"
-    local data = {}
-    local f = io.open(awful.util.getdir("config") .. "/.savepoint.lua")
-    if f ~= nil then
-        f:close()
-        data = require('.savepoint')
-    end
-    data.pids = {}
-
-    capi.awesome.connect_signal("exit", disconnect)
-
     local ret = {}
+    local data = load("_savepoint")
+    data.windows = data.windows or {}
+    ret.ids = {}
+
     -- make sure, that we have at least a screen and tag structure
     for s = 1, capi.screen.count() do
         local screen = capi.screen[s]
@@ -217,114 +325,55 @@ function connect(Layouts)
         for t,tag in ipairs(screen:tags()) do
             screendata[t] = update_tag('set', tag, screendata[t])
         end
-
-        ret[s] = setmetatable({
-            layout = wibox.layout.flex.vertical(),
-            controls = wibox.layout.flex.horizontal(),
-            length = 0,
-            fit = function ()
-                return 242, ((ret[s].length + 1) * 12)
-            end,
-        }, { __mode = 'k' })
-        local ignorecontrol = create_control("ignore", function ()
-            ret[s].length = 0
-            for pid, _ in pairs(data.pids) do
-                data.pids[pid] = nil
-            end
-            ret[s].layout:reset()
-        end)
-        ret[s].controls:add(ignorecontrol)
-        ret[s].controls:add(create_control("spawn", function ()
-            -- remove spawncontrol to disable retry
-            ret[s].controls:reset()
-            ret[s].controls:add(ignorecontrol)
-            -- spawn new process here and update pid at every place
-            local pids = {}
-            for pid, _ in pairs(data.pids) do
-                local entry = data.pids[pid]
-                local spawn = awful.util.spawn(entry.window.command, true, entry.window.screen)
-                if type(spawn) == "number" then
-                    entry.text:set_text(spawn .. "\t" .. entry.window.command)
-                    data.pids[pid] = nil
-                    entry.window.pid = spawn
-                    pids[spawn] = entry
-                    ret[entry.window.screen][pid] = nil
-                    ret[entry.window.screen][spawn] = entry
-                else
-                    -- fails
-                    ret[s].length = ret[s].length - 1
-                    entry.text:set_text(spawn or "broken")
-                end
-            end
-            data.pids = pids
-        end))
-        ret[s].layout:add(ret[s].controls)
-    end
-
-    if data.windows == nil then
-        data.windows = {}
-    else
-        for _,window in ipairs(data.windows) do
-            data.pids[window.pid] = window
-            if window.screen > capi.screen.count() then
-                window.screen = capi.screen.count()
-            end
+        if screendata.tags and #screendata.tags then
+            awful.tag.viewmore(get_tags(screendata.tags, s), s)
         end
+        ret[s] = create_screen_info(s)
     end
 
-    for pid, window in pairs(data.pids) do
-        window.command = window.command or ""
-        local entry = {
-            window = window,
-            text = wibox.widget.textbox(),
-        }
-        local w = ret[window.screen]
-        entry.text:set_text(window.pid .. "\t" .. window.command)
-        w.length = w.length + 1
-        w.layout:add(entry.text)
-        w[window.pid] = entry
-        data.pids[window.pid] = entry -- kill switch
+    local randi = 0
+    for _, window in ipairs(data.windows) do
+        window = create_window(ret, window)
+        if window.id == nil then
+            randi = randi - 1
+            window.id = randi
+        end
+        local win = ret[window.screen]
+        win.layout:add(window.text)
+        win.length = win.length + 1
+        win.windows[window.id] = window
+        ret.ids[window.id] = window -- kill switch
     end
 
+    capi.awesome.connect_signal("exit", disconnect)
     capi.client.connect_signal("manage", function (client)
-        local window = data.pids[client.pid]
+
+        print(client.pid, client.window, ret.ids[client.window] == nil)
+        local window = ret.ids[client.window] -- matches after restart
         if window == nil then
+            -- TODO better checks
             local cmd = get_command(client.pid)
-            for pid, entry in pairs(data.pids) do
-                if entry.window.command == cmd then
-                    window = entry
-                    window.window.pid = client.pid
-                    data.pids[pid] = nil
-                    data.pids[client.pid] = entry
-                    ret[client.screen][pid] = nil
-                    ret[client.screen][client.pid] = entry
+            for id, win in pairs(ret.ids) do
+                if win.command == cmd then
+                    win.pid = client.pid
+                    window = win
                     break
                 end
             end
         end
         if window ~= nil then
-            window = window.window
-            print("alife!",client.pid,window.command)
-            update_window('set', client, window)
-            -- get all tag userdatas
-            local tags = {}
-            local capitags = capi.screen[client.screen]:tags()
-            for _, t in ipairs(window.tags or {}) do
-                table.insert(tags, capitags[t])
+            window = update_window('set', client, window)
+            if window.tags and #window.tags then
+                client:tags(get_tags(window.tags, client.screen))
             end
-            client:tags(tags)
-
-            local w = ret[client.screen]
-            data.pids[client.pid] = nil
-            w.length = w.length - 1
-            w.layout:reset()
-            w.layout:add(w.controls)
-            for _,c in pairs(data.pids) do
-                w.layout:add(c.text)
-            end
+            local win = ret[client.screen]
+            win.length = win.length - 1
+            window.remove()
+            win.rebuild()
         end
     end)
 
+    data.windows = nil -- should be everything in ret.ids by now
     return ret
 end
 
