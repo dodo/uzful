@@ -133,11 +133,9 @@ end
 local function get_command(pid)
     if pid == 0 then
         return ""
+    else
+        return awful.util.pread("ps --no-headers o args " .. pid)
     end
-    local f = io.popen("ps --no-headers o args " .. pid, "r")
-    local ret = f:read() or ""
-    f:close()
-    return ret
 end
 
 

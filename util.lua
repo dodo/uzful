@@ -116,14 +116,3 @@ function functionlist(list)
 end
 
 
---- Get program output as lines
--- similar to io.lines but works with io.popen instead of io.open
-function proglines(...)
-    local f = io.popen(...)
-    return function () -- iterator
-        local data = f:read()
-        if data == nil then f:close() end
-        return data
-    end
-end
-
