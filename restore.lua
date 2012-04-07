@@ -50,7 +50,8 @@ local function lualine(value, key, indent)
     if type(value) == "table" then
         res = res .. table2string(value, indent)
     elseif type(value) == "string" then
-        res = res .. '"' .. value .. '"'
+		local s, _ = string.gsub(value, "\n", "")
+        res = res .. '"' .. s .. '"'
     elseif type(value) == "boolean" then
         res = res .. (value and "true" or "false")
     else
