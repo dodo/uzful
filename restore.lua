@@ -103,18 +103,6 @@ local function update_window(cmd, client, data)
     elseif cmd == 'get' then
         data.geometry = client:geometry()
     end
-    for _,prop in ipairs({"screen","instance","pid"}) do
-        if cmd == 'get' or data[prop] == nil then
-            data[prop] = client[prop]
-        elseif cmd == 'set' then
-            if prop == "screen" and data.screen > capi.screen.count() then
-                data.screen = capi.screen.count()
-            end
-            if prop ~= "pid" then
-                client[prop] = data[prop]
-            end
-        end
-    end
     for _,prop in ipairs({"floating","floating_geometry","sticky","ontop","minimized","maximized","hidden","fullscreen","modal","maximized_horizontal","maximized_vertical","skip_taskbar"}) do
         if cmd == 'get' or data[prop] == nil then
             data[prop] = awful.client.property.get(client, prop)
@@ -126,6 +114,18 @@ local function update_window(cmd, client, data)
     end
     if cmd == 'set' and client.floating and data.floating_geometry ~= nil then
         client:geometry(data.floating_geometry)
+    end
+    for _,prop in ipairs({"instance","pid","screen"}) do
+        if cmd == 'get' or data[prop] == nil then
+            data[prop] = client[prop]
+        elseif cmd == 'set' then
+            if prop == "screen" and data.screen > capi.screen.count() then
+                data.screen = capi.screen.count()
+            end
+            if prop ~= "pid" then
+                client[prop] = data[prop]
+            end
+        end
     end
     return data
 end
