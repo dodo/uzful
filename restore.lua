@@ -119,10 +119,10 @@ local function update_window(cmd, client, data)
         if cmd == 'get' or data[prop] == nil then
             data[prop] = client[prop]
         elseif cmd == 'set' then
-            if prop == "screen" and data.screen > capi.screen.count() then
-                data.screen = capi.screen.count()
-            end
-            if prop ~= "pid" then
+            if prop == "screen" then
+                if data.screen > capi.screen.count() then
+                    data.screen = capi.screen.count()
+                end
                 client[prop] = data[prop]
             end
         end
