@@ -112,9 +112,6 @@ local function update_window(cmd, client, data)
             end
         end
     end
-    if cmd == 'set' and client.floating and data.floating_geometry ~= nil then
-        client:geometry(data.floating_geometry)
-    end
     for _,prop in ipairs({"instance","pid","screen"}) do
         if cmd == 'get' or data[prop] == nil then
             data[prop] = client[prop]
@@ -126,6 +123,9 @@ local function update_window(cmd, client, data)
                 client[prop] = data[prop]
             end
         end
+    end
+    if cmd == 'set' and data.floating_geometry ~= nil then
+        awful.client.floating.set(client, client.floating)
     end
     return data
 end
