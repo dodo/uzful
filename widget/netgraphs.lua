@@ -12,6 +12,7 @@ local table = table
 local ipairs = ipairs
 local vicious = require("vicious")
 local widget = require("uzful.widget.util")
+local layout = require("uzful.layout.util")
 local getinfo = require("uzful.getinfo")
 local setmetatable = setmetatable
 
@@ -99,7 +100,13 @@ function new(args)
 
         ret.small = {
             widgets = small_widgets,
-            layout = small,
+            layout = layout.build({
+                widget = small,
+                reflection = {
+                    vertical = (args.direction == "right"),
+                },
+                layout = wibox.layout.mirror,
+            }),
             height = args.small.height,
             width = args.small.widgth }
     end
@@ -139,6 +146,9 @@ function new(args)
             height = height + h
             big:add(label)
             labels[interface] = label
+            local mirror = wibox.layout.mirror()
+            mirror:set_reflection({ vertical = (args.direction == "right") })
+            local graphs = wibox.layout.fixed.vertical()
             for _, typ in ipairs({"down", "up"}) do
                 local g = awful.widget.graph(big_geometry)
                 widget.set_properties(g, {
@@ -150,8 +160,10 @@ function new(args)
                     args.big.interval)
                 height = height + big_geometry.height
                 table.insert(big_widgets, g)
-                big:add(g)
+                graphs:add(g)
             end
+            mirror:set_widget(graphs)
+            big:add(mirror)
         end
         ret.big = {
             widgets = big_widgets,

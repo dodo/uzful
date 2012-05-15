@@ -8,7 +8,9 @@ local awful = require("awful")
 local wibox = require("wibox")
 local pairs = pairs
 local ipairs = ipairs
+local table = table
 local vicious = require("vicious")
+local layout = require("uzful.layout.util")
 local widget = require("uzful.widget.util")
 local getinfo = require("uzful.getinfo")
 local setmetatable = setmetatable
@@ -54,8 +56,7 @@ function new(args)
 
     local small = nil
     if args.small then
-        small = awful.widget.graph(
-            { width = args.small.width, height = args.small.height })
+        small = awful.widget.graph(args.small)
         widget.set_properties(small, {
             border_color = nil,
             color = args.small.fgcolor,
@@ -63,41 +64,51 @@ function new(args)
         vicious.register(small, vicious.widgets.cpu, "$1", args.small.interval)
         ret.small = {
             widget = small,
+            layout = wibox.layout.mirror(),
             height = args.small.height,
             width = args.small.width }
+        ret.small.layout:set_reflection({ vertical = (args.direction == "right")})
+        ret.small.layout:set_widget(ret.small.widget)
     end
 
 
     if args.big then
         local height = 0
-        local layout = wibox.layout.fixed.vertical()
         if args.load then
             ret.load = wibox.widget.textbox()
             if args.load.font then  ret.load:set_font(args.load.font)  end
             vicious.register(ret.load, vicious.widgets.uptime,
                 vicious.helpers.format(args.load.text or "$1 $2 $3",
                     {"$4", "$5", "$6"}), args.load.interval)
-            layout:add(ret.load)
             local _, h = ret.load:fit(-1, -1)
             height = height + h
         end
 
         local big = {}
-        local big_geometry = {width = args.big.width, height = args.big.height}
         local cpucounter = getinfo.cpu_count()
         for i=1,cpucounter do
-            big[i] = awful.widget.graph(big_geometry)
+            table.insert(big, awful.widget.graph(args.big))
             widget.set_properties(big[i], {
                 border_color = nil,
                 color = args.big.fgcolor,
                 background_color = args.big.bgcolor })
             vicious.register(big[i], vicious.widgets.cpu, "$"..(i+1),
                 args.big.interval)
-            layout:add(big[i])
         end
         height = height + cpucounter * args.big.height
+        big.layout = wibox.layout.fixed.vertical
         ret.big = {
-            layout = layout,
+            layout = layout.build({
+                ret.load,
+                {
+                    widget = big,
+                    reflection = {
+                        vertical = (args.direction == "right"),
+                    },
+                    layout = wibox.layout.mirror,
+                },
+                layout = wibox.layout.fixed.vertical,
+            }),
             widgets = big,
             height = height,
             width = args.big.width}
