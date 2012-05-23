@@ -7,6 +7,7 @@
 
 require("uzful.menu.util")
 require("uzful.menu.popup")
+require("uzful.menu.wallpaper")
 
 local setmetatable = setmetatable
 local util = require("uzful.menu.util")
