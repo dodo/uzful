@@ -391,6 +391,7 @@ function new(c, args)
             box.x = coord("x", d, geometry, ret.size)
         end
         ret:visiblity()
+        ret.widget.draw()
     end
     signals["property::y"] = function ()
         local geometry = c:geometry()
@@ -399,6 +400,7 @@ function new(c, args)
             box.y = coord("y", d, geometry, ret.size)
         end
         ret:visiblity()
+        ret.widget.draw()
     end
     signals["unmanage"] = function ()
         for signal, callback in pairs(signals) do
