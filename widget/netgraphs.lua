@@ -14,6 +14,7 @@ local vicious = require("vicious")
 local widget = require("uzful.widget.util")
 local layout = require("uzful.layout.util")
 local getinfo = require("uzful.getinfo")
+local beautiful = require("beautiful")
 local setmetatable = setmetatable
 
 
@@ -116,9 +117,20 @@ function new(args)
             vicious.helpers.format(args.highlight or "$1", { interface }) or
             vicious.helpers.format(args.normal    or "$1", { interface })
     end
+    local set_color = function (bg, interface)
+        local theme = beautiful.get()
+        if interface == cur then
+            bg:set_fg(theme.fg_focus)
+            bg:set_bg(theme.bg_focus)
+        else
+            bg:set_fg(theme.fg_normal)
+            bg:set_bg(theme.bg_normal)
+        end
+    end
 
     if args.big then
         args.big.scale = args.big.scale or "mb"
+        local backgrounds = {}
         local labels = {}
 
         ret.switch = function () end
@@ -129,6 +141,7 @@ function new(args)
                 small:reset()
                 small:add(small_layout[cur])
                 for _, interface in ipairs(network_interfaces) do
+                    set_color(backgrounds[interface], interface)
                     labels[interface]:set_markup(if_text(interface))
                 end
             end
@@ -144,8 +157,12 @@ function new(args)
             if args.font then  label:set_font(args.font)  end
             local _, h = label:fit(-1, -1)
             height = height + h
-            big:add(label)
             labels[interface] = label
+            local background = wibox.widget.background()
+            background:set_widget(label)
+            set_color(background, interface)
+            big:add(background)
+            backgrounds[interface] = background
             local mirror = wibox.layout.mirror()
             mirror:set_reflection({ vertical = (args.direction == "right") })
             local graphs = wibox.layout.fixed.vertical()
