@@ -47,6 +47,7 @@ local default_net_colors = { fg = {down = "#00FF00", up = "#FF0000"},
 -- @param args.big.bgcolor <i>(optional when `args.big` given) </i> background color of big cpu graphs
 -- @param args.fgcolor <i>(optional) </i> default value of `args.small.fgcolor` and `args.big.fgcolor`
 -- @param args.bgcolor <i>(optional) </i> default value of `args.small.bgcolor` and `args.big.bgcolor`
+-- @param args.theme <i>(optional) </i> defaults to beautiful.get()
 -- @return a table  with this properties: small <i>(when `args.small` given)</i> (with properties: layout, widgets, width, height), big <i>(wher `args.big` given)</i> (with properties: layout, widgets, width, height), switch <i>(when `args.big` and `args.small` are given)</i>
 function new(args)
     local ret = {}
@@ -118,7 +119,7 @@ function new(args)
             vicious.helpers.format(args.normal    or "$1", { interface })
     end
     local set_color = function (bg, interface)
-        local theme = beautiful.get()
+        local theme = args.theme or beautiful.get()
         if interface == cur then
             bg:set_fg(theme.fg_focus)
             bg:set_bg(theme.bg_focus)
