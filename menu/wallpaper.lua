@@ -20,6 +20,15 @@ local capi = {
     mouse = mouse,
 }
 
+local awsetbg_params = {
+    fullscreen = "f",
+    maximize   = "a",
+    center     = "c",
+    tile       = "t",
+--  lol        = "o",
+    random     = "r",
+}
+
 --- Feed it with:
 -- theme.wallpapers = {
 --     "/normal/path/to/a/picture.ext",
@@ -30,7 +39,6 @@ local capi = {
 -- uzful.menu.wallpaper.menu(theme.wallpapers)
 
 module("uzful.menu.wallpaper")
-
 
 local table_update = function (t, set)
     for k, v in pairs(set) do
@@ -48,7 +56,12 @@ function menu(items)
             }, new = entry } -- tell this is different
         if type(item) == 'table' then
             e[1] = item[1]
-            e[2][1][2] = e[2][1][2] .. "-c "
+            for key,arg in pairs(awsetbg_params) do
+                if item[key] then
+                    e[2][1][2] = e[2][1][2] .. "-" .. arg .. " "
+                    break
+                end
+            end
             e._item = item
         else
             e[1] = item -- assume this is a string
