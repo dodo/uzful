@@ -8,6 +8,7 @@ local awful = require("awful")
 local wibox = require("wibox")
 local beautiful = require("beautiful")
 local uzful = { util = require("uzful.util") }
+local surface = require("gears.surface")
 local string = { format = string.format }
 local esc = awful.util.escape
 local ipairs = ipairs
@@ -22,7 +23,6 @@ local capi =
 {
     client = client,
     screen = screen,
-    oocairo = oocairo
 }
 
 local function any(list, iter)
@@ -294,7 +294,7 @@ function new(c, args)
     }
 
     local controls = {}
-    local image, img, key
+    local key
     for _, con in ipairs(buttons) do
         local name = con[1]
         local control = {}
@@ -312,16 +312,8 @@ function new(c, args)
                     key = string.format(
                         "titlebar_%s_button_%s", name, focustype)
                 end
-                image = args[key] or theme[key]
 
-                if type(image) == "string" then
-                    img = capi.oocairo.image_surface_create_from_png(image)
-                elseif type(image) == "userdata" and image.type and image:type() == "cairo_surface_t" then
-                    img = image
-                elseif type(image) == "userdata" and image._NAME and image._NAME == "cairo surface object" then
-                    img = image
-                end
-                focusstate[val] = img
+                focusstate[val] = surface.load(args[key] or theme[key])
             end
         end
 

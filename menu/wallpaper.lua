@@ -11,11 +11,11 @@ local pairs = pairs
 local ipairs = ipairs
 local floor = math.floor
 local setmetatable = setmetatable
+local surface = require("gears.surface")
 local wibox = require("wibox")
 local awful = require("awful")
+local cairo = require("lgi").cairo
 local capi = {
-    awesome = awesome,
-    oocairo = oocairo,
     screen = screen,
     mouse = mouse,
 }
@@ -82,7 +82,7 @@ function entry(parent, args)
     args.cmd = args[2] or args.cmd
     local ret = {}
     -- load wallpaper preview
-    local img = capi.awesome.load_image(args.file)
+    local img = surface.load(args.file)
     if img then
         local iw = img:get_width()
         local ih = img:get_height()
@@ -92,10 +92,10 @@ function entry(parent, args)
             local sw, sh = width / g.width, height / g.height
             local x = (g.width  - iw)*0.5--(width  + iw*sw*0.5)/sw
             local y = (g.height - ih)*0.5--(height + ih*sh*0.5)/sh
-            local i = capi.oocairo.image_surface_create("argb32", width, height)
-            local cr = capi.oocairo.context_create(i)
+            local i = cairo.ImageSurface(cairo.Format.ARGB32, width, height)
+            local cr = cairo.Context(i)
             cr:scale(sw, sh)
-            cr:set_source(img, x, y)
+            cr:set_source_surface(img, x, y)
             cr:paint()
             img = i
         elseif iw > width or ih > height then
@@ -106,10 +106,10 @@ function entry(parent, args)
                 w, h = (height / ih) * iw, height
             end
             -- We need to scale the image to size w x h
-            local i = capi.oocairo.image_surface_create("argb32", w, h)
-            local cr = capi.oocairo.context_create(i)
+            local i = cairo.ImageSurface(cairo.Format.ARGB32, w, h)
+            local cr = cairo.Context(i)
             cr:scale(w / iw, h / ih)
-            cr:set_source(img, 0, 0)
+            cr:set_source_surface(img, 0, 0)
             cr:paint()
             img = i
         end
