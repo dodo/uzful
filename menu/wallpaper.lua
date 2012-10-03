@@ -11,9 +11,9 @@ local pairs = pairs
 local ipairs = ipairs
 local floor = math.floor
 local setmetatable = setmetatable
-local surface = require("gears.surface")
 local wibox = require("wibox")
 local awful = require("awful")
+local gears = require("gears")
 local cairo = require("lgi").cairo
 local capi = {
     screen = screen,
@@ -21,12 +21,9 @@ local capi = {
 }
 
 local awsetbg_params = {
-    fullscreen = "f",
-    maximize   = "a",
-    center     = "c",
-    tile       = "t",
---  lol        = "o",
-    random     = "r",
+    maximize   = "maximized",
+    center     = "centered",
+    tile       = "tiled",
 }
 
 --- Feed it with:
@@ -47,27 +44,32 @@ local table_update = function (t, set)
     return t
 end
 
+function exec(item, menu)
+    local sel = menu.parent.items[menu.parent.sel]
+    local fun = "maximized"
+    for key, name in pairs(awsetbg_params) do
+        if sel._item[key] then
+            fun = name
+            break
+        end
+    end
+    gears.wallpaper[fun](sel._item[1], capi.mouse.screen)
+end
+
 function menu(items)
     local ret = {}
     for i, item in ipairs(items) do
         local e = {"", -- name
             { -- submenu
-                {"apply", "awsetbg ", new = awful.menu.entry},
+                {"apply", exec, new = awful.menu.entry},
             }, new = entry } -- tell this is different
         if type(item) == 'table' then
             e[1] = item[1]
-            for key,arg in pairs(awsetbg_params) do
-                if item[key] then
-                    e[2][1][2] = e[2][1][2] .. "-" .. arg .. " "
-                    break
-                end
-            end
             e._item = item
         else
             e[1] = item -- assume this is a string
             e._item = {item}
         end
-        e[2][1][2] = e[2][1][2] .. e[1]
         table.insert(ret, e)
     end
     return ret
@@ -82,7 +84,7 @@ function entry(parent, args)
     args.cmd = args[2] or args.cmd
     local ret = {}
     -- load wallpaper preview
-    local img = surface.load(args.file)
+    local img = gears.surface.load(args.file)
     if img then
         local iw = img:get_width()
         local ih = img:get_height()
@@ -119,6 +121,7 @@ function entry(parent, args)
 
     return table_update(ret, {
         height = args.theme.height,
+        _item = args._item,
         image = img,
         widget = imgbox,
         cmd = args.cmd,
