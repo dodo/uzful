@@ -10,6 +10,7 @@ local pairs = pairs
 local ipairs = ipairs
 local table = table
 local vicious = require("vicious")
+local helpers = require("vicious.helpers")
 local layout = require("uzful.layout.util")
 local widget = require("uzful.widget.util")
 local getinfo = require("uzful.getinfo")
@@ -78,7 +79,7 @@ function new(args)
             ret.load = wibox.widget.textbox()
             if args.load.font then  ret.load:set_font(args.load.font)  end
             vicious.register(ret.load, vicious.widgets.uptime,
-                vicious.helpers.format(args.load.text or "$1 $2 $3",
+                helpers.format(args.load.text or "$1 $2 $3",
                     {"$4", "$5", "$6"}), args.load.interval)
             local _, h = ret.load:fit(-1, -1)
             height = height + h

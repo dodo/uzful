@@ -11,6 +11,7 @@ local pairs = pairs
 local table = table
 local ipairs = ipairs
 local vicious = require("vicious")
+local helpers = require("vicious.helpers")
 local widget = require("uzful.widget.util")
 local layout = require("uzful.layout.util")
 local getinfo = require("uzful.getinfo")
@@ -115,8 +116,8 @@ function new(args)
 
     local if_text = function (interface)
         return (args.big and args.small and interface == cur) and
-            vicious.helpers.format(args.highlight or "$1", { interface }) or
-            vicious.helpers.format(args.normal    or "$1", { interface })
+            helpers.format(args.highlight or "$1", { interface }) or
+            helpers.format(args.normal    or "$1", { interface })
     end
     local set_color = function (bg, interface)
         local theme = args.theme or beautiful.get()

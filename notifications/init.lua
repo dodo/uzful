@@ -9,6 +9,7 @@ local util = require("awful.util")
 local menu = require("uzful.menu.popup")
 local naughty = require("naughty")
 local vicious = require("vicious")
+local helpers = require("vicious.helpers")
 local beautiful = require("beautiful")
 local setmetatable = setmetatable
 local ipairs = ipairs
@@ -71,7 +72,7 @@ function add(wid, args)
     wid.number = wid.number + 1
 
     local setMarkup = function ()
-        wid.text:set_markup(vicious.helpers.format(conf.format, { wid.number }))
+        wid.text:set_markup(helpers.format(conf.format, { wid.number }))
     end
     setMarkup()
     local item
@@ -130,7 +131,7 @@ function enable(wid)
     local conf = widgets[wid]
     if conf == nil or conf.visible then return end
     conf.visible = true
-    wid.text:set_markup(vicious.helpers.format(conf.format, { wid.number }))
+    wid.text:set_markup(helpers.format(conf.format, { wid.number }))
     naughty.suspend()
 end
 
@@ -173,7 +174,7 @@ function new(screen, args)
     args = args or {}
 
     local conf = {
-        disabled = vicious.helpers.format(args.disabled or "$1", { "⤫" }),
+        disabled = helpers.format(args.disabled or "$1", { "⤫" }),
         format = args.text or "$1",
         menu = args.menu or {},
         visible = args.visible ~= nil and args.visible,
