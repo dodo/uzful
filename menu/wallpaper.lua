@@ -53,7 +53,13 @@ function exec(item, menu)
             break
         end
     end
-    gears.wallpaper[fun](sel._item[1], capi.mouse.screen)
+    if menu.sel == 1 then
+        gears.wallpaper[fun](sel._item[1], capi.mouse.screen)
+    else
+        for s= 1, capi.screen.count() do
+            gears.wallpaper[fun](sel._item[1], s)
+        end
+    end
 end
 
 function menu(items)
@@ -61,7 +67,8 @@ function menu(items)
     for i, item in ipairs(items) do
         local e = {"", -- name
             { -- submenu
-                {"apply", exec, new = awful.menu.entry},
+                {"apply",       exec, new = awful.menu.entry},
+                {"all screens", exec, new = awful.menu.entry},
             }, new = entry } -- tell this is different
         if type(item) == 'table' then
             e[1] = item[1]
