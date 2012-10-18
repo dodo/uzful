@@ -11,6 +11,7 @@ local pairs = pairs
 local ipairs = ipairs
 local floor = math.floor
 local setmetatable = setmetatable
+local span = require("uzful.widget.span")
 local wibox = require("wibox")
 local awful = require("awful")
 local gears = require("gears")
@@ -63,7 +64,8 @@ function exec(item, menu)
 end
 
 function menu(items)
-    local ret = {}
+    local ret = { layout = wibox.layout.fixed.vertical }
+    local sub = ret
     for i, item in ipairs(items) do
         local e = {"", -- name
             { -- submenu
@@ -77,9 +79,22 @@ function menu(items)
             e[1] = item -- assume this is a string
             e._item = {item}
         end
-        table.insert(ret, e)
+        if #sub == 8 then
+            local newsub = { layout = wibox.layout.fixed.vertical }
+            table.insert(sub, 1, {"moar", newsub, height = 14, new = fixentry })
+            sub = newsub
+        end
+        table.insert(sub, e)
     end
     return ret
+end
+
+function fixentry(parent, args)
+    args = args or {}
+    local item = awful.menu.entry(parent, args)
+    item.widget = span({widget = item.widget, height = args.height})
+    item.height = args.height
+    return item
 end
 
 
