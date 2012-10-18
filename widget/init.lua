@@ -5,6 +5,7 @@
 --------------------------------------------------------------------------------
 
 require("uzful.widget.util")
+require("uzful.widget.span")
 require("uzful.widget.netgraphs")
 require("uzful.widget.cpugraphs")
 require("uzful.widget.progressimage")
