@@ -167,11 +167,10 @@ function disconnect()
     local filename = "_savepoint"
     local data = load(filename)
     for s = 1, capi.screen.count() do
-        local screen = capi.screen[s]
         local screendata = data[s] or {}
         data[s] = screendata
         screendata.tags = get_tag_numbers(awful.tag.selectedlist(s))
-        for t,tag in ipairs(screen:tags()) do
+        for t,tag in ipairs(awful.tag.gettags(s)) do
             screendata[t] = update_tag('get', tag, screendata[t])
         end
     end
@@ -296,7 +295,7 @@ end
 local function get_tags(tags, screen)
     -- get all tag userdatas
     local ret = {}
-    local capitags = capi.screen[screen or 1]:tags()
+    local capitags = awful.tag.gettags(screen or 1)
     for _, t in ipairs(tags or {}) do
         table.insert(ret, capitags[t])
     end
@@ -315,13 +314,12 @@ function connect(Layouts)
 
     -- make sure, that we have at least a screen and tag structure
     for s = 1, capi.screen.count() do
-        local screen = capi.screen[s]
         local screendata = data[s]
         if screendata == nil then
             screendata = {}
             data[s] = screendata
         end
-        for t,tag in ipairs(screen:tags()) do
+        for t,tag in ipairs(awful.tag.gettags(s)) do
             screendata[t] = update_tag('set', tag, screendata[t])
         end
         if screendata.tags and #screendata.tags then
