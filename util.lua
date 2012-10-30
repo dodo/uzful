@@ -4,15 +4,26 @@
 -- @release v3.4-503-g4972a28
 --------------------------------------------------------------------------------
 
+local print=print
+local pairs = pairs
+local ipairs = ipairs
 local io = require("io")
 local obvious = {}
+local assert = assert
 local require = require
 local vicious = require("vicious")
-local pairs = pairs
+local socket = require("socket")   -- luarocks install luasocket
+local udev = require("udev") -- https://github.com/dodo/lua-udev
+local table_insert = table.insert
+local capi = {
+    timer = timer,
+}
 
 module("uzful.util")
 
+
 table = {
+    insert = table_insert,
     update = function (t, set)
         for k, v in pairs(set) do
             t[k] = v
@@ -55,7 +66,37 @@ listen = {
             end
         return ret
     end,
+
+    sysfs = function (ret, callback)
+        if not callback then ret, callback = nil, ret end
+        if not ret then
+            ret = { ud = udev(), callbacks = {callback} }
+            ret.mon = udev.monitor(ret.ud, "udev")
+            assert(ret.mon:filter_subsystem_devtype("power_supply"))
+            ret.timer = capi.timer({ timeout = 0.1 })
+            ret.timer:connect_signal("timeout", function ()
+                if #socket.select({ret.mon}, nil, 0) > 0 then
+                    local device = ret.mon:receive()
+                    if device then
+                        local properties = device:getproperties()
+                        for _, cb in ipairs(ret.callbacks) do
+                            cb(device, properties)
+                        end
+                        device:close()
+                    else
+                        print("no device!")
+                    end
+                end
+            end)
+            ret.timer:start()
+            ret.mon:start()
+        else
+            table.insert(ret.callbacks, callback)
+        end
+        return ret
+    end,
     }
+
 
 --- vicious threshold generator
 -- generates an object that can be passed to `vicious.register`
