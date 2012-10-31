@@ -67,13 +67,14 @@ listen = {
         return ret
     end,
 
-    sysfs = function (ret, callback)
-        if not callback then ret, callback = nil, ret end
+    sysfs = function (opts, callback)
+        if not callback then opts, callback = {}, opts end
+        local ret = opts.handle
         if not ret then
             ret = { ud = udev(), callbacks = {callback} }
-            ret.mon = udev.monitor(ret.ud, "udev")
-            assert(ret.mon:filter_subsystem_devtype("power_supply"))
-            ret.timer = capi.timer({ timeout = 0.1 })
+            ret.mon = udev.monitor(ret.ud, opts.monitor or "udev")
+            assert(ret.mon:filter_subsystem_devtype(opts.subsystem, opts.devtype))
+            ret.timer = capi.timer({ timeout = opts.timeout or 0.1 })
             ret.timer:connect_signal("timeout", function ()
                 if #socket.select({ret.mon}, nil, 0) > 0 then
                     local device = ret.mon:receive()
