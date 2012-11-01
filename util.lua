@@ -21,6 +21,7 @@ local capi = {
 
 module("uzful.util")
 
+local ud = udev()
 
 table = {
     insert = table_insert,
@@ -71,8 +72,8 @@ listen = {
         if not callback then opts, callback = {}, opts end
         local ret = opts.handle
         if not ret then
-            ret = { ud = udev(), callbacks = {callback} }
-            ret.mon = udev.monitor(ret.ud, opts.monitor or "udev")
+            ret = { callbacks = {callback} }
+            ret.mon = udev.monitor(ud, opts.monitor or "udev")
             assert(ret.mon:filter_subsystem_devtype(opts.subsystem, opts.devtype))
             ret.timer = capi.timer({ timeout = opts.timeout or 0.1 })
             ret.timer:connect_signal("timeout", function ()
