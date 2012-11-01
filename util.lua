@@ -5,6 +5,7 @@
 --------------------------------------------------------------------------------
 
 local print=print
+local type = type
 local pairs = pairs
 local ipairs = ipairs
 local io = require("io")
@@ -14,6 +15,7 @@ local require = require
 local vicious = require("vicious")
 local socket = require("socket")   -- luarocks install luasocket
 local udev = require("udev") -- https://github.com/dodo/lua-udev
+local unpack = unpack or table.unpack -- v5.1: unpack, v5.2: table.unpack
 local table_insert = table.insert
 local capi = {
     timer = timer,
@@ -99,6 +101,43 @@ listen = {
     end,
     }
 
+local function get_args(args, key)
+    local arg = args[key]
+    if arg and type(arg) ~= "table" then arg = {arg} end
+    return unpack(arg or {})
+end
+scan = {
+    sysfs = function (typ, args)
+        if type(typ) == "table" then typ, args = nil, typ end
+        typ = typ or "devices"
+        args = args or {}
+        local enum = udev.enumerate(ud)
+        for _, k in ipairs({"subsystem","sysattr"}) do
+            if args["no"..k] then enum["nomatch_"..k](enum, get_args(args, "no"..k)) end
+            if args[k] then enum["match_"..k](enum, get_args(args, k)) end
+        end
+        for _, k in ipairs({"property","tag","parent","sysname"}) do
+            if args[k] then enum["match_"..k](enum, get_args(args, k)) end
+        end
+        if args.syspath then
+            if type(args.syspath) ~= "table" then args.syspath = {args.syspath} end
+            for _, syspath in ipairs(args.syspath) do
+                enum:addsyspath(syspath)
+            end
+        end
+        if args.initialized then enum:match_initialized() end
+        assert(enum["scan_"..typ](enum)) -- now scanning …
+        local ret = {}
+        for _, path in ipairs(enum:getlist()) do
+            print("got path:", path)
+            local dev = udev.device.new_from_syspath(ud, path)
+            table.insert(ret, dev:getproperties())
+            dev:close()
+        end
+        enum:close()
+        return ret
+    end,
+}
 
 --- vicious threshold generator
 -- generates an object that can be passed to `vicious.register`
