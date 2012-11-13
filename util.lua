@@ -82,9 +82,10 @@ listen = {
                 if #socket.select({ret.mon}, nil, 0) > 0 then
                     local device = ret.mon:receive()
                     if device then
+                        local sysattrs = device:getsysattrs()
                         local properties = device:getproperties()
                         for _, cb in ipairs(ret.callbacks) do
-                            cb(device, properties)
+                            cb(device, properties, sysattrs)
                         end
                         device:close()
                     else
@@ -127,11 +128,13 @@ scan = {
         end
         if args.initialized then enum:match_initialized() end
         assert(enum["scan_"..typ](enum)) -- now scanning …
-        local ret = {}
+        local ret = {properties = {}, sysattrs = {}, length = 0}
         for _, path in ipairs(enum:getlist()) do
             print("got path:", path)
+            ret.length = ret.length + 1
             local dev = udev.device.new_from_syspath(ud, path)
-            table.insert(ret, dev:getproperties())
+            table.insert(ret.properties, dev:getproperties())
+            table.insert(ret.sysattrs, dev:getsysattrs())
             dev:close()
         end
         enum:close()
