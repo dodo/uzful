@@ -77,7 +77,7 @@ listen = {
             ret = { callbacks = {callback} }
             ret.mon = udev.monitor(ud, opts.monitor or "udev")
             assert(ret.mon:filter_subsystem_devtype(opts.subsystem, opts.devtype))
-            ret.timer = capi.timer({ timeout = opts.timeout or 0.1 })
+            ret.timer = opts.timer or capi.timer({ timeout = opts.timeout or 0.1 })
             ret.timer:connect_signal("timeout", function ()
                 if #socket.select({ret.mon}, nil, 0) > 0 then
                     local device = ret.mon:receive()
@@ -92,7 +92,7 @@ listen = {
                     end
                 end
             end)
-            ret.timer:start()
+            if not opts.timer then ret.timer:start() end
             ret.mon:start()
         else
             table.insert(ret.callbacks, callback)
