@@ -136,9 +136,11 @@ function new(args)
         local labels = {}
 
         ret.switch = function () end
+        ret.toggle = function () end
         if args.small then
-            ret.switch = function ()
-                cur = network_interfaces[interface_cache[cur] %
+            ret.toggle = function () ret.switch() end
+            ret.switch = function (newcur)
+                cur = newcur or network_interfaces[interface_cache[cur] %
                         #network_interfaces + 1]
                 small:reset()
                 small:add(small_layout[cur])
