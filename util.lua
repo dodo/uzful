@@ -14,7 +14,6 @@ local assert = assert
 local require = require
 local vicious = require("vicious")
 local socket = require("socket")   -- luarocks install luasocket
-local udev = require("udev") -- https://github.com/dodo/lua-udev
 local unpack = unpack or table.unpack -- v5.1: unpack, v5.2: table.unpack
 local table_insert = table.insert
 local capi = {
@@ -23,7 +22,13 @@ local capi = {
 
 module("uzful.util")
 
-local ud = udev()
+local udev, ud = nil, nil
+local function initudev()
+    if udev then return end
+    udev = require("udev") -- https://github.com/dodo/lua-udev
+    ud = udev()
+end
+
 
 table = {
     insert = table_insert,
@@ -70,7 +75,7 @@ listen = {
         return ret
     end,
 
-    sysfs = function (opts, callback)
+    sysfs = function (opts, callback) initudev()
         if not callback then opts, callback = {}, opts end
         local ret = opts.handle
         if not ret then
@@ -108,7 +113,7 @@ local function get_args(args, key)
     return unpack(arg or {})
 end
 scan = {
-    sysfs = function (typ, args)
+    sysfs = function (typ, args) initudev()
         if type(typ) == "table" then typ, args = nil, typ end
         typ = typ or "devices"
         args = args or {}
