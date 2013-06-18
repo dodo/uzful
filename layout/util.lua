@@ -6,6 +6,7 @@
 
 local type = type
 local pairs = pairs
+local tag = require("awful.tag")
 
 module("uzful.layout.util")
 
@@ -39,3 +40,9 @@ function build(tree)
     return tree
 end
 
+function reset()
+    local sel = tag.selected()
+    tag.setproperty(sel, "mwfact", 0.5)
+    tag.setproperty(sel, "nmaster", 1 )
+    tag.setproperty(sel, "ncol", 1 )
+end
