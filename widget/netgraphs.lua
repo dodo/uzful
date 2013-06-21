@@ -132,16 +132,23 @@ function new(args)
 
     if args.big then
         args.big.scale = args.big.scale or "mb"
+        local big = wibox.layout.fixed.vertical()
+        local big_geometry = {width = args.big.width, height = args.big.height}
+        local active = {}
+        local big_widgets = {}
         local backgrounds = {}
+        local big_graphs = {}
         local labels = {}
 
         ret.switch = function () end
         ret.toggle = function () end
+        ret.update_active = function () end
         if args.small then
             ret.toggle = function () ret.switch() end
             ret.switch = function (newcur)
-                cur = newcur or network_interfaces[interface_cache[cur] %
-                        #network_interfaces + 1]
+                if not newcur and #active == 0 then return end
+                cur = newcur or active[interface_cache[cur] %
+                        #active + 1]
                 small:reset()
                 small:add(small_layout[cur])
                 for _, interface in ipairs(network_interfaces) do
@@ -149,13 +156,37 @@ function new(args)
                     labels[interface]:set_markup(if_text(interface))
                 end
             end
+            ret.update_active = function (newcur)
+                local netdata = vicious.widgets.net()
+--                 for k,v in pairs(netdata) do print(k,v) end
+                local height = 0
+                active = {}
+                big:reset()
+                for i, interface in ipairs(network_interfaces) do
+                    if netdata["{"..interface.." carrier}"] == 1 then
+                        table.insert(active, interface)
+                        local _, h = labels[interface]:fit(-1, -1)
+                        height = height + h + big_geometry.height * 2
+                        big:add(labels[interface])
+                        big:add(big_graphs[interface])
+                        vicious.activate(big_widgets[(i - 1) * 2 + 1])
+                        vicious.activate(big_widgets[(i - 1) * 2 + 2])
+                    else
+                        local _, h = labels[interface]:fit(-1, -1)
+                        height = height + h
+                        big:add(labels[interface])
+                        vicious.unregister(big_widgets[(i - 1) * 2 + 1], true)
+                        vicious.unregister(big_widgets[(i - 1) * 2 + 2], true)
+                    end
+                end
+                if newcur then ret.switch(newcur) end
+                ret.big.height = height
+            end
         end
 
         local height = 0
-        local big_widgets = {}
-        local big = wibox.layout.fixed.vertical()
-        local big_geometry = {width = args.big.width, height = args.big.height}
         for i, interface in ipairs(network_interfaces) do
+            table.insert(active, interface)
             local label = wibox.widget.textbox()
             label:set_markup(if_text(interface))
             if args.font then  label:set_font(args.font)  end
@@ -169,6 +200,7 @@ function new(args)
             backgrounds[interface] = background
             local mirror = wibox.layout.mirror()
             mirror:set_reflection({ vertical = (args.direction == "right") })
+            big_graphs[interface] = mirror
             local graphs = wibox.layout.fixed.vertical()
             for _, typ in ipairs({"down", "up"}) do
                 local g = awful.widget.graph(big_geometry)
