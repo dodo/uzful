@@ -12,6 +12,7 @@ local table = table
 local ipairs = ipairs
 local vicious = require("vicious")
 local helpers = require("vicious.helpers")
+local uzful = { widget = { bandgraph = require("uzful.widget.bandgraph") } }
 local widget = require("uzful.widget.util")
 local layout = require("uzful.layout.util")
 local getinfo = require("uzful.getinfo")
@@ -23,8 +24,9 @@ module("uzful.widget.netgraphs")
 
 
 
-local default_net_colors = { fg = {down = "#00FF00", up = "#FF0000"},
-                             bg = {down = "#002000", up = "#200000"} }
+local default_net_colors = { fg = {down = "#00FF0099", up = "#FF000099"},
+                             mg = {down = "#00FF0011", up = "#FF000011"},
+                             bg = {down = "#002000",   up = "#200000"} }
 --- fency Net Graphs for all network interfaces
 -- To enable interface switch use: mynetgraphs.small.layout:connect_signal("button::release", mynetgraphs.switch)
 -- @param args table with all relevant properties
@@ -84,10 +86,11 @@ function new(args)
         for _, interface in ipairs(network_interfaces) do
             local l = wibox.layout.fixed.vertical()
             for _, typ in ipairs({"down", "up"}) do
-                local g = awful.widget.graph(small_geometry)
+                local g = uzful.widget.bandgraph(small_geometry)
                 widget.set_properties(g, {
                     border_color = nil,
                     color = args.small[typ .. '_fgcolor'],
+                    band_color = args.small[typ .. '_mgcolor'],
                     background_color = args.small[typ .. '_bgcolor'] })
                 vicious.register(g, vicious.widgets.net,
                     "${" ..interface.. " " ..typ.. "_" ..args.small.scale.. "}",
@@ -203,10 +206,11 @@ function new(args)
             big_graphs[interface] = mirror
             local graphs = wibox.layout.fixed.vertical()
             for _, typ in ipairs({"down", "up"}) do
-                local g = awful.widget.graph(big_geometry)
+                local g = uzful.widget.bandgraph(big_geometry)
                 widget.set_properties(g, {
                     border_color = nil,
                     color = args.big[typ .. '_fgcolor'],
+                    band_color = args.big[typ .. '_mgcolor'],
                     background_color = args.big[typ .. '_bgcolor'] })
                 vicious.register(g, vicious.widgets.net,
                     "${" ..interface.. " " ..typ.. "_" ..args.big.scale.. "}",
