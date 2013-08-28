@@ -72,13 +72,13 @@ function graph.draw(_graph, wibox, cr, width, height)
     -- Draw the background on no value
     if #values ~= 0 then
         -- Draw reverse
-        local multi = {}
+        local band = {}
         for i = 0, #values - 1 do
             local value = values[#values - i]
             if value >= 0 then
                 value = value / max_value
                 if value > 1 then
-                    table.insert(multi, {pos = i, value =  math.floor(value)})
+                    table.insert(band, {pos = i, value =  math.floor(value)})
                     value = value - math.floor(value)
                 end
                 cr:move_to(i + 0.5, height * (1 - value))
@@ -89,10 +89,10 @@ function graph.draw(_graph, wibox, cr, width, height)
         cr:stroke()
         cr:set_source(color(data[_graph].band_color or "#ff000099"))
 
-        -- render multiple lines where needed
-        while #multi > 0 do
+        -- render bandple lines where needed
+        while #band > 0 do
             local dummy = {}
-            for _,line in ipairs(multi) do
+            for _,line in ipairs(band) do
                 cr:move_to(line.pos + 0.5, 0)
                 cr:line_to(line.pos + 0.5, height)
                 line.value = line.value - 1
@@ -100,7 +100,7 @@ function graph.draw(_graph, wibox, cr, width, height)
                     table.insert(dummy, line)
                 end
             end
-            multi = dummy
+            band = dummy
             cr:stroke()
         end
     end
