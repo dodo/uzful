@@ -67,7 +67,7 @@ function new(args)
     end
 
     local interface_cache = {}
-    local network_interfaces = getinfo.interfaces()
+    local network_interfaces = args.interfaces or getinfo.interfaces()
     local cur = type(args.default) == "number" and args.default or 1
     cur = network_interfaces[cur]
     for k, v in ipairs(network_interfaces) do
