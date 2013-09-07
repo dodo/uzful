@@ -45,11 +45,6 @@ function new(args) -- FIXME crude api
     return m
 end
 
-{ key = value }
-{ value, value }
-#{ value, 1 = value, value } == 2
-#{ 1 = value, 2 = value, 3 = value, 5 = value, 4 = value } == 5
-
 
 setmetatable(daemon, { __call = function (_, ...) return new(...) end })
 return daemon
