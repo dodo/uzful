@@ -10,11 +10,11 @@ require("uzful.menu.wallpaper")
 
 local setmetatable = setmetatable
 local util = require("uzful.menu.util")
-
+local _daemon = require("uzful.menu.daemon")
 
 module("uzful.menu")
 
-
 toggle_widgets = util.toggle_widgets
 layouts = util.layouts
+daemon = _daemon
 
