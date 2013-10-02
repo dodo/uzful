@@ -3,14 +3,10 @@
 -- @copyright 2011 https://github.com/dodo
 -- @release v3.4-503-g4972a28
 --------------------------------------------------------------------------------
-local print = print
 
-local table = table
-local type = type
-local pairs = pairs
-local ipairs = ipairs
+local wallpaper = { mt = {} }
+
 local floor = math.floor
-local setmetatable = setmetatable
 local span = require("uzful.widget.span")
 local wibox = require("wibox")
 local awful = require("awful")
@@ -36,7 +32,6 @@ local awsetbg_params = {
 -- }
 -- uzful.menu.wallpaper.menu(theme.wallpapers)
 
-module("uzful.menu.wallpaper")
 
 local table_update = function (t, set)
     for k, v in pairs(set) do
@@ -45,7 +40,7 @@ local table_update = function (t, set)
     return t
 end
 
-function exec(item, menu)
+function wallpaper.exec(item, menu)
     local sel = menu.parent.items[menu.parent.sel]
     local fun = "maximized"
     for key, name in pairs(awsetbg_params) do
@@ -63,15 +58,15 @@ function exec(item, menu)
     end
 end
 
-function menu(items)
+function wallpaper.menu(items)
     local ret = { layout = wibox.layout.fixed.vertical }
     local sub = ret
     for i, item in ipairs(items) do
         local e = {"", -- name
             { -- submenu
-                {"apply",       exec, new = awful.menu.entry},
-                {"all screens", exec, new = awful.menu.entry},
-            }, new = entry } -- tell this is different
+                {"apply",       wallpaper.exec, new = awful.menu.entry},
+                {"all screens", wallpaper.exec, new = awful.menu.entry},
+            }, new = wallpaper.entry } -- tell this is different
         if type(item) == 'table' then
             e[1] = item[1]
             e._item = item
@@ -81,7 +76,7 @@ function menu(items)
         end
         if #sub == 8 then
             local newsub = { layout = wibox.layout.fixed.vertical }
-            table.insert(sub, 1, {"moar", newsub, height = 14, new = fixentry })
+            table.insert(sub, 1, {"moar", newsub, height = 14, new = wallpaper.fixentry })
             sub = newsub
         end
         table.insert(sub, e)
@@ -89,7 +84,7 @@ function menu(items)
     return ret
 end
 
-function fixentry(parent, args)
+function wallpaper.fixentry(parent, args)
     args = args or {}
     local item = awful.menu.entry(parent, args)
     item.widget = span({widget = item.widget, height = args.height})
@@ -98,7 +93,7 @@ function fixentry(parent, args)
 end
 
 
-function entry(parent, args)
+function wallpaper.entry(parent, args)
     args = args or {}
     local g = capi.screen[capi.mouse.screen].geometry
     args.theme.height = args.height or floor(args.theme.width*g.height/g.width)
@@ -151,4 +146,8 @@ function entry(parent, args)
     })
 end
 
-setmetatable(_M, { __call = function (_, ...) return entry(...) end })
+function wallpaper.mt:__call(...)
+    return wallpaper.entry(...)
+end
+
+return setmetatable(wallpaper, wallpaper.mt)

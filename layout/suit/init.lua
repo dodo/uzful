@@ -4,7 +4,7 @@
 -- @release v3.4-503-g4972a28
 --------------------------------------------------------------------------------
 
-require("uzful.layout.suit.strips")
-
 --- Suits for awful
-module("uzful.layout.suit")
+return {
+    strips = require("uzful.layout.suit.strips"),
+}

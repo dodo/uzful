@@ -4,21 +4,15 @@
 -- @release v3.4-503-g4972a28
 --------------------------------------------------------------------------------
 
+local graph = { mt = {} }
+
 local awful = require("awful")
 local wibox = require("wibox")
-local pairs = pairs
-local ipairs = ipairs
-local table = table
 local vicious = require("vicious")
 local helpers = require("vicious.helpers")
 local layout = require("uzful.layout.util")
 local widget = require("uzful.widget.util")
 local getinfo = require("uzful.getinfo")
-local setmetatable = setmetatable
-
-
-module("uzful.widget.cpugraphs")
-
 
 
 local default_cpu_colors = { fg = "#FFFFFF", bg = "#000000" }
@@ -43,7 +37,7 @@ local default_cpu_colors = { fg = "#FFFFFF", bg = "#000000" }
 -- @param args.fgcolor <i>(optional) </i> default value of `args.small.fgcolor` and `args.big.fgcolor`
 -- @param args.bgcolor <i>(optional) </i> default value of `args.small.bgcolor` and `args.big.bgcolor`
 -- @return a table  with this properties: small <i>(when `args.small` given)</i> (with properties: widget, width, height), big <i>(wher `args.big` given)</i> (with properties: layout, widgets, width, height), load <i>(when `args.load` given)</i>
-function new(args)
+local function new(args)
     local ret = {}
     for _, size in ipairs({"small", "big"}) do
         if args[size] then
@@ -118,5 +112,9 @@ function new(args)
     return ret
 end
 
-setmetatable(_M, { __call = function (_, ...) return new(...) end })
+function graph.mt:__call(...)
+    return new(...)
+end
+
+return setmetatable(graph, graph.mt)
 

@@ -54,3 +54,4 @@ function vardump(data)
 	return table.concat(erg)
 end
 
+return vardump

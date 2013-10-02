@@ -4,6 +4,8 @@
 -- @release v3.4-503-g4972a28
 --------------------------------------------------------------------------------
 
+local titlebar = { mt = {} }
+
 local awful = require("awful")
 local wibox = require("wibox")
 local beautiful = require("beautiful")
@@ -11,12 +13,6 @@ local uzful = { util = require("uzful.util") }
 local surface = require("gears.surface")
 local string = { format = string.format }
 local esc = awful.util.escape
-local ipairs = ipairs
-local pairs = pairs
-local pcall = pcall
-local type = type
-local print = print
-local setmetatable = setmetatable
 local Mirror = {east = "west", west = "east",
                 south = "north", north = "south"}
 local capi =
@@ -33,8 +29,6 @@ local function any(list, iter)
     end
     return false
 end
-
-module("uzful.widget.titlebar")
 
 
 local function coord(key, dir, geometry, size)
@@ -106,7 +100,7 @@ end
 
 
 
-function direction(bar, geometry)
+function titlebar.direction(bar, geometry)
     local dir = bar._dir
     local mirrored = bar._mirrored
     if dir == "auto" then
@@ -182,13 +176,13 @@ function direction(bar, geometry)
 end
 
 
-function toggle(bar)
+function titlebar.toggle(bar)
     bar._mirrored = not bar._mirrored
     bar:update()
 end
 
 
-function visiblity(bar)
+function titlebar.visiblity(bar)
     local c = bar.client
     local w = bar.widget
     local geometry = c:geometry()
@@ -208,7 +202,7 @@ function visiblity(bar)
 end
 
 
-function color(bar, args)
+function titlebar.color(bar, args)
     args = args or {}
     local w = bar.widget
     local theme = beautiful.get()
@@ -223,7 +217,7 @@ function color(bar, args)
     end
 end
 
-function update(bar)
+function titlebar.update(bar)
     local w = bar.widget
     local geometry = bar.client:geometry()
     local d = bar:direction(geometry)
@@ -239,9 +233,7 @@ function update(bar)
 end
 
 
-
-
-function new(c, args)
+local function new(c, args)
     args = args or {}
 
     local ret = {}
@@ -408,8 +400,10 @@ function new(c, args)
         c:connect_signal(signal, callback)
     end
 
-    for _, k in ipairs({"visiblity", "update", "color", "direction", "toggle"}) do
-        ret[k] = _M[k]
+    for k, v in pairs(titlebar) do
+        if type(v) == "function" then
+            ret[k] = v
+        end
     end
 
     ret:color()
@@ -432,7 +426,7 @@ local update_titlebars = function(tag)
 end
 
 -- mirror the titlebar to the other side
-function mirror(c)
+function titlebar.mirror(c)
     local bar = awful.client.property.get(c, "titlebar")
     if bar ~= nil then
         bar:toggle()
@@ -442,4 +436,9 @@ end
 awful.tag.attached_connect_signal(nil, "property::selected", update_titlebars)
 awful.tag.attached_connect_signal(nil, "property::hide",     update_titlebars)
 
-setmetatable(_M, { __call = function (_, ...) return new(...) end })
+
+function titlebar.mt:__call(...)
+    return new(...)
+end
+
+return setmetatable(titlebar, titlebar.mt)

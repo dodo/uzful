@@ -1,11 +1,11 @@
 
+local daemons = { mt = {} }
+
 local tags = require("awful.tag")
 local util = require("awful.util")
 local menu = require("awful.menu")
 local capi = {
     client = client }
-
-local daemons = {}
 
 local table_merge = function (t, set)
     for _, v in ipairs(set) do
@@ -56,6 +56,8 @@ function daemons.clients(args) -- FIXME crude api
     return m
 end
 
+function daemons.mt:__call(_, ...)
+    return daemons.new(...)
+end
 
-setmetatable(daemons, { __call = function (_, ...) return daemons.new(...) end })
-return daemons
+return setmetatable(daemons, daemons.mt)

@@ -4,12 +4,12 @@
 -- @release v3.4-503-g4972a28
 --------------------------------------------------------------------------------
 
-require("uzful.util")
-require("uzful.menu")
-require("uzful.layout")
-require("uzful.widget")
-require("uzful.getinfo")
-require("uzful.notifications")
-
-
-module("uzful")
+return {
+    util = require("uzful.util"),
+    menu = require("uzful.menu"),
+    layout = require("uzful.layout"),
+    widget = require("uzful.widget"),
+    getinfo = require("uzful.getinfo"),
+    restore = require("uzful.restore"),
+    notifications = require("uzful.notifications"),
+}

@@ -4,23 +4,17 @@
 -- @release v3.4-503-g4972a28
 --------------------------------------------------------------------------------
 
-local print=print
-local type = type
-local pairs = pairs
-local ipairs = ipairs
+util = {}
+
 local io = require("io")
 local obvious = {}
-local assert = assert
-local require = require
 local vicious = require("vicious")
 local socket = require("socket")   -- luarocks install luasocket
 local unpack = unpack or table.unpack -- v5.1: unpack, v5.2: table.unpack
-local table_insert = table.insert
 local capi = {
     timer = timer,
 }
 
-module("uzful.util")
 
 local udev, ud = nil, nil
 local function initudev()
@@ -30,17 +24,16 @@ local function initudev()
 end
 
 
-table = {
-    insert = table_insert,
+util.table = {
     update = function (t, set)
         for k, v in pairs(set) do
             t[k] = v
         end
         return t
     end
-    }
+}
 
-patch = {
+util.patch = {
     --- Enables always vicious.cache for all registered vicious widgets
     -- It overrides `vicious.register`.
     -- enable auto caching
@@ -58,7 +51,7 @@ patch = {
     end,
     }
 
-listen = {
+util.listen = {
     --- vicious listener generator
     -- generates an object that van be passed to `vicious.register`
     -- @param slot specify the way you want to get your data. should be smth like 'text' (string), or 'value' (number)
@@ -112,7 +105,7 @@ local function get_args(args, key)
     if arg and type(arg) ~= "table" then arg = {arg} end
     return unpack(arg or {})
 end
-scan = {
+util.scan = {
     sysfs = function (typ, args) initudev()
         if type(typ) == "table" then typ, args = nil, typ end
         typ = typ or "devices"
@@ -153,9 +146,9 @@ scan = {
 -- @param on when set_value invoked and value &gt; threshold then this function is called
 -- @param off when set_value invoked and value &lt; threshold then this function is called
 -- @return a table with property: set_value (similar to widget:set_value)
-function threshold(threshold, on, off)
+function util.threshold(threshold, on, off)
     local old_value = -1
-    return listen.vicious("value", function (value)
+    return util.listen.vicious("value", function (value)
             if value < threshold then off(value) else on(value) end
         end )
 end
@@ -172,7 +165,7 @@ end
 -- @param typ <i>(default: "alsa")</i> obvious has to modules for volume control: alsa and freebsd
 -- @param cardid <i>(optional when typ == "alsa", default: 0)</i> specify sound card id
 -- @return a table with lower and raise function (both take optional percentage as param (default: 1))
-function volume(channel, typ, cardid)
+function util.volume(channel, typ, cardid)
     typ = typ or "alsa"
     cardid = cardid or 0
     if obvious[typ] == nil then
@@ -195,7 +188,7 @@ end
 -- you can change the function by next or prev which will be invoked by call
 -- @param list list of functions
 -- @return a table with methods: current, call, next, prev
-function functionlist(list)
+function util.functionlist(list)
     local current = 1
     return {
         current = function () return current end,
@@ -205,4 +198,4 @@ function functionlist(list)
     }
 end
 
-
+return util

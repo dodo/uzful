@@ -4,22 +4,19 @@
 -- @release v3.4-503-g4972a28
 --------------------------------------------------------------------------------
 
-require("uzful.widget.util")
-require("uzful.widget.span")
-require("uzful.widget.netgraphs")
-require("uzful.widget.cpugraphs")
-require("uzful.widget.progressimage")
-require("uzful.widget.calendar")
-require("uzful.widget.titlebar")
-local graph = require("uzful.widget.bandgraph")
-
-
 local util = require("uzful.widget.util")
 
-module("uzful.widget")
-
-wibox = util.wibox
-infobox = util.infobox
-set_properties = util.set_properties
-bandgraph = graph
+return {
+    span = require("uzful.widget.span"),
+    calendar = require("uzful.widget.calendar"),
+    titlebar = require("uzful.widget.titlebar"),
+    netgraphs = require("uzful.widget.netgraphs"),
+    cpugraphs = require("uzful.widget.cpugraphs"),
+    bandgraph = require("uzful.widget.bandgraph"),
+    progressimage = require("uzful.widget.progressimage"),
+    set_properties = util.set_properties,
+    infobox = util.infobox,
+    wibox = util.wibox,
+    util = util,
+}
 

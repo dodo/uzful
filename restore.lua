@@ -1,13 +1,7 @@
 -- I want to be your savery
 
-local print = print
-local type = type
-local pairs = pairs
-local ipairs = ipairs
-local table = table
-local string = string
-local require = require
-local setmetatable = setmetatable
+local restore = { mt = {} }
+
 local io = require('io')
 local awful = require('awful')
 local wibox = require('wibox')
@@ -19,8 +13,6 @@ local capi = {
 }
 
 local layouts = {}
-
-module('uzful.restore') -- savery
 
 --- example usage
 -- myrestorelist = uzful.restore(layouts)
@@ -163,7 +155,7 @@ local function get_tag_numbers(tags)
 end
 
 
-function disconnect()
+function restore.disconnect()
     local filename = "_savepoint"
     local data = load(filename)
     for s = 1, capi.screen.count() do
@@ -229,7 +221,6 @@ local function create_screen_info(screen)
         windows = setmetatable({}, {__mode = 'v'}),
         length = 0,
         fit = function ()
-            print("h",((ret.length + 1) * 12))
             return 242, ((ret.length + 1) * 12)
         end,
         rebuild = function ()
@@ -302,7 +293,7 @@ local function get_tags(tags, screen)
     return ret
 end
 
-function connect(Layouts)
+function restore.connect(Layouts)
     for _, layout in ipairs(Layouts) do
         layouts[awful.layout.getname(layout)] = layout
     end
@@ -342,10 +333,9 @@ function connect(Layouts)
         ret.ids[window.id] = window -- kill switch
     end
 
-    capi.awesome.connect_signal("exit", disconnect)
+    capi.awesome.connect_signal("exit", restore.disconnect)
     capi.client.connect_signal("manage", function (client)
 
-        print(client.pid, client.window, ret.ids[client.window] == nil)
         local window = ret.ids[client.window] -- matches after restart
         if window == nil then
             -- TODO better checks
@@ -374,5 +364,8 @@ function connect(Layouts)
     return ret
 end
 
-setmetatable(_M, { __call = function (_, ...) return connect(...) end })
+function restore.mt:__call(...)
+    return restore.connect(...)
+end
 
+return setmetatable(restore, restore.mt)

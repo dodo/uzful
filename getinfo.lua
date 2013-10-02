@@ -4,23 +4,20 @@
 -- @release v3.4-503-g4972a28
 --------------------------------------------------------------------------------
 
-local io = io
-local table = table
-local string = string
-local assert = assert
+getinfo = {}
 
-module("uzful.getinfo")
+local io = require('io')
 
 --- Network Interfaces
 -- @return list of all network interfaces (without `lo`)
-function interfaces()
+function getinfo.interfaces()
 	local f = io.popen("ls /sys/class/net", "r")
 	local out = assert(f:read("*a"))
 	f:close()
 	local ret = {}
 	for w in string.gfind(out, "%w+") do
 	  	f,emsg,enum = io.open("/sys/class/net/".. w .. "/device" ,"r")
-		if (enum ~= 2 ) then 
+		if (enum ~= 2 ) then
 			 table.insert(ret, w)
 		 end
 	end
@@ -29,7 +26,7 @@ end
 
 --- CPUs
 -- @return list of all cpus
-function local_cpus()
+function getinfo.local_cpus()
 	local cpu_lines = {}
 	local c = ""
 	local v = ""
@@ -45,8 +42,8 @@ end
 
 --- CPU Count
 -- @return number of cpus
-function cpu_count()
-    return #local_cpus()
+function getinfo.cpu_count()
+    return #getinfo.local_cpus()
 end
 
-
+return getinfo

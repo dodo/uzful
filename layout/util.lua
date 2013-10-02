@@ -4,11 +4,10 @@
 -- @release v3.4-503-g4972a28
 --------------------------------------------------------------------------------
 
-local type = type
-local pairs = pairs
+local util = {}
+
 local tag = require("awful.tag")
 
-module("uzful.layout.util")
 
 --- Builds a layout from a table tree
 -- When inserted a function it returns the result without parameters.
@@ -16,7 +15,7 @@ module("uzful.layout.util")
 -- Whe given table has properties it will try to invoke the `set_[key]` function of the layout.
 -- @param tree the table describing the layout (can be recursive)
 -- @return a layout or the result of the given function or just the input
-function build(tree)
+function util.build(tree)
     if type(tree) == "function" then
         return tree()
     end
@@ -25,13 +24,13 @@ function build(tree)
         local layout = tree.layout()
         for i=1,#tree do
             if tree[i] then
-                value = build(tree[i])
+                value = util.build(tree[i])
                 if value then layout:add(value) end
             end
         end
         for key, value in pairs(tree) do
             if type(key) == "string" and layout["set_" .. key] then
-                value = build(value)
+                value = util.build(value)
                 if value then layout["set_" .. key](layout, value) end
             end
         end
@@ -40,9 +39,11 @@ function build(tree)
     return tree
 end
 
-function reset()
+function util.reset()
     local sel = tag.selected()
     tag.setproperty(sel, "mwfact", 0.5)
     tag.setproperty(sel, "nmaster", 1 )
     tag.setproperty(sel, "ncol", 1 )
 end
+
+return util

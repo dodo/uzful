@@ -4,12 +4,10 @@
 -- @release v3.4-503-g4972a28
 --------------------------------------------------------------------------------
 
+local graph = { mt = {} }
+
 local awful = require("awful")
 local wibox = require("wibox")
-local type = type
-local pairs = pairs
-local table = table
-local ipairs = ipairs
 local vicious = require("vicious")
 local helpers = require("vicious.helpers")
 local uzful = { widget = { bandgraph = require("uzful.widget.bandgraph") } }
@@ -17,11 +15,6 @@ local widget = require("uzful.widget.util")
 local layout = require("uzful.layout.util")
 local getinfo = require("uzful.getinfo")
 local beautiful = require("beautiful")
-local setmetatable = setmetatable
-
-
-module("uzful.widget.netgraphs")
-
 
 
 local default_net_colors = { fg = {down = "#00FF0099", up = "#FF000099"},
@@ -52,7 +45,7 @@ local default_net_colors = { fg = {down = "#00FF0099", up = "#FF000099"},
 -- @param args.bgcolor <i>(optional) </i> default value of `args.small.bgcolor` and `args.big.bgcolor`
 -- @param args.theme <i>(optional) </i> defaults to beautiful.get()
 -- @return a table  with this properties: small <i>(when `args.small` given)</i> (with properties: layout, widgets, width, height), big <i>(wher `args.big` given)</i> (with properties: layout, widgets, width, height), switch <i>(when `args.big` and `args.small` are given)</i>
-function new(args)
+local function new(args)
     local ret = {}
     for _, size in ipairs({"small", "big"}) do
         if args[size] then
@@ -231,4 +224,9 @@ function new(args)
     return ret
 end
 
-setmetatable(_M, { __call = function (_, ...) return new(...) end })
+
+function graph.mt:__call(...)
+    return new(...)
+end
+
+return setmetatable(graph, graph.mt)

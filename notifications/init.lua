@@ -4,6 +4,8 @@
 -- @release v3.4-503-g4972a28
 --------------------------------------------------------------------------------
 
+local notifications = { mt = {} }
+
 local os = require('os')
 local wibox = require("wibox")
 local awful = require("awful")
@@ -12,31 +14,26 @@ local vicious = require("vicious")
 local helpers = require("vicious.helpers")
 local beautiful = require("beautiful")
 local uzful = { widget = { scroll = require('uzful.widget.scroll') } }
-local setmetatable = setmetatable
-local ipairs = ipairs
-local pairs = pairs
-local table = table
 local widgets = {}
 local capi = {
     mouse = mouse,
     screen = screen }
 
-module("uzful.notifications")
 
 local mt = {}
 local data = {}
 
-function patch()
+function notifications.patch()
     local notify = naughty.notify
     naughty.notify = function (args)
         local notification = notify(args)
-        update(notification, args)
+        notifications.update(notification, args)
         return notification
     end
 end
 
 
-function update(notification, args)
+function notifications.update(notification, args)
     args = args or {}
     local preset = args.preset or naughty.config.default_preset or {}
     local icon = args.icon or preset.icon
@@ -141,22 +138,22 @@ function mt.toggle_menu(wid, args)
         w, h = wid.menu.layout:fit(w, h)
         wid.menu.width, wid.menu.height = w, h
         wid.menu.wibox.width, wid.menu.wibox.height = w, h
-        
+
         if wid.menu.wibox.visible then
-            
+
             local geo = capi.screen[capi.mouse.screen].workarea
             local coords = capi.mouse.coords()
             coords.x = coords.x + 1
             coords.y = coords.y + 1
             wid.menu.wibox.x = coords.x < geo.x and geo.x or coords.x
             wid.menu.wibox.y = coords.y < geo.y and geo.y or coords.y
-            
+
             local a, b, la, lb = "x", "y", "width", "height"
             if wid.menu.layout.dir == "vertical" then a, b, la, lb = b, a, lb, la end
             local screen_s = geo[b] + geo[lb]
             wid.menu.wibox[b] = wid.menu.wibox[b] + wid.menu.wibox[lb] > screen_s and
                     screen_s - wid.menu.wibox[lb] or wid.menu.wibox[b]
-    
+
             wid.menu.layout.timer:start()
         else
             wid.menu.layout.timer:stop()
@@ -207,7 +204,7 @@ function mt.toggle(wid)
 end
 
 
-function new(screen, args)
+local function new(screen, args)
     screen = screen or 1
     args = args or {}
     local ret
@@ -261,4 +258,8 @@ function new(screen, args)
 end
 
 mt = { __index = mt }
-setmetatable(_M, { __call = function (_, ...) return new(...) end })
+
+function notifications.mt:__call(...)
+    return new(...)
+end
+return setmetatable(notifications, notifications.mt)

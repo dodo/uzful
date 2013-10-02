@@ -4,18 +4,14 @@
 -- @release v3.4-503-g4972a28
 --------------------------------------------------------------------------------
 
-
-require("uzful.menu.util")
-require("uzful.menu.wallpaper")
-
-local setmetatable = setmetatable
 local util = require("uzful.menu.util")
 local daemon = require("uzful.menu.daemon")
 
-module("uzful.menu")
-
-toggle_widgets = util.toggle_widgets
-layouts = util.layouts
-clients = daemon.clients
-daemons = daemon
-
+return {
+    wallpaper = require("uzful.menu.wallpaper"),
+    toggle_widgets = util.toggle_widgets,
+    layouts = util.layouts,
+    clients = daemon.clients,
+    daemons = daemon,
+    util = util,
+}

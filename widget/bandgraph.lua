@@ -186,7 +186,7 @@ end
 -- @param args Standard widget() arguments. You should add width and height
 -- key to set graph geometry.
 -- @return A graph widget.
-function graph.new(args)
+local function new(args)
     local args = args or {}
 
     local width = args.width or 100
@@ -211,7 +211,7 @@ function graph.new(args)
 end
 
 function graph.mt:__call(...)
-    return graph.new(...)
+    return new(...)
 end
 
 return setmetatable(graph, graph.mt)

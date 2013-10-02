@@ -5,9 +5,6 @@
 --------------------------------------------------------------------------------
 
 local tag = require("awful.tag")
-local math = math
-
-module("uzful.layout.suit.strips")
 
 
 local function strips_group(p, orientation, group, offset, fact)
@@ -60,7 +57,7 @@ end
 
 --- Vertical strips layout.
 -- @param screen The screen to arrange.
-columns = {}
+local columns = {}
 columns.name = "columns"
 function columns.arrange(p)
     return strips(p, "south")
@@ -69,8 +66,14 @@ end
 
 --- Horizontal strips layout.
 -- @param screen The screen to arrange.
-rows = {}
+local rows = {}
 rows.name = "rows"
 function rows.arrange(p)
     return strips(p, "east")
 end
+
+
+return {
+    columns = columns,
+    rows = rows,
+}

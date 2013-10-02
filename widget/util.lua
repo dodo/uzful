@@ -4,17 +4,14 @@
 -- @release v3.4-503-g4972a28
 --------------------------------------------------------------------------------
 
-local util = require("uzful.util")
+local util = {}
+
+local uzful = { util = require("uzful.util") }
 local Wibox = require("wibox")
-local setmetatable = setmetatable
-local pairs = pairs
-local type = type
 local capi = {
     screen = screen,
     mouse = mouse,
 }
-
-module("uzful.widget.util")
 
 
 --- wibox helper
@@ -24,7 +21,7 @@ module("uzful.widget.util")
 -- @param args.visible when given `wibox.visible` will be set
 -- @param args.widget when given `wibox:set_widget` will be invoked
 -- @return wibox object
-function wibox(args)
+function util.wibox(args)
     local w = Wibox(args)
     w.screen = args.screen or 1
     w.visible = args.visible or false
@@ -39,7 +36,7 @@ end
 -- @param widget the widget to be filled with properties
 -- @param properties a table with the properties
 -- @return the given widget
-function set_properties(widget, properties)
+function util.set_properties(widget, properties)
     local fun = nil
     for name, property in pairs(properties) do
         fun = widget["set_" .. name]
@@ -56,8 +53,8 @@ end
 -- ontop = true
 -- @param args any wibox args like in uzful.widget.util.wibox
 -- @return wibox object
-function infobox(args)
-    local box = wibox(util.table.update({ type = "notification",
+function util.infobox(args)
+    local box = util.wibox(uzful.util.table.update({ type = "notification",
         visible = false, ontop = true }, args))
     local ret = {}
     local size = args.size
@@ -65,7 +62,7 @@ function infobox(args)
     local position = args.position or "top"
 
     ret.update = function ()
-        local screen = screen or box.screen or capi.mouse.screen or 1
+        local screen = args.screen or box.screen or capi.mouse.screen or 1
         local area = capi.screen[screen].workarea
 
         if size and type(size) == "function" then
@@ -129,3 +126,5 @@ function infobox(args)
     ret:update()
     return ret
 end
+
+return util

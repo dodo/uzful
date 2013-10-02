@@ -5,18 +5,10 @@
 -- original code made by Bzed and published on http://awesome.naquadah.org/wiki/Calendar_widget
 --------------------------------------------------------------------------------
 
-local os = os
-local math = math
-local type = type
-local pairs = pairs
-local string = string
-local tostring = tostring
+local calendar = { mt = {} }
+
 local helper = require("vicious.helpers")
 local wibox = require("wibox")
-local setmetatable = setmetatable
-
-
-module("uzful.widget.calendar")
 
 
 local center_text = function (text, size, maxs, char)
@@ -73,7 +65,7 @@ end
 --- Changes calendar month
 -- @param cal calendar
 -- @param month month diff (-1 or 2 or smth else (number))
-function switch_month(cal, month)
+function calendar.switch_month(cal, month)
     cal.month = cal.month + month
     cal:update()
 end
@@ -81,14 +73,14 @@ end
 --- Changes calendar year
 -- @param cal calendar
 -- @param year year diff (-1 or 2 or smth else (number))
-function switch_year(cal, year)
+function calendar.switch_year(cal, year)
     cal.year = cal.year + year
     cal:update()
 end
 
 --- Sets calendar to current date
 -- @param cal calendar
-function now(cal)
+function calendar.now(cal)
     cal.month = os.date('%m')
     cal.year = os.date('%Y')
     cal:update()
@@ -107,7 +99,7 @@ end
 -- @param args.week <i>/default: '$1') </i> format string for all week numbers
 -- @param args.head <i>/default: '$1') </i> format string for header
 -- @param args.all <i>/default: '$1') </i> format string for complete text
-function new(args)
+local function new(args)
     args = args or {}
     args.font = args.font or "monospace"
     if type(args.font) == "number" then
@@ -130,10 +122,14 @@ function new(args)
         ret.width, ret.height = ret.widget:fit(-1, -1)
     end
     ret:update()
-    ret.switch_month = switch_month
-    ret.switch_year = switch_year
-    ret.now = now
+    ret.switch_month = calendar.switch_month
+    ret.switch_year = calendar.switch_year
+    ret.now = calendar.now
     return ret
 end
 
-setmetatable(_M, { __call = function (_, ...) return new(...) end })
+function calendar.mt:__call(...)
+    return new(...)
+end
+
+return setmetatable(calendar, calendar.mt)

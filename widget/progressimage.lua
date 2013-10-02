@@ -4,13 +4,11 @@
 -- @release v3.4-503-g4972a28
 --------------------------------------------------------------------------------
 
+local progressimage = { mt = {} }
+
 local awful = require("awful")
 local wibox = require("wibox")
 local widget = require("uzful.widget.util")
-local setmetatable = setmetatable
-
-
-module("uzful.widget.progressimage")
 
 
 --- Progressbar and Image Glue
@@ -22,7 +20,7 @@ module("uzful.widget.progressimage")
 -- @param args.draw_image_first <i>(default: true)</i> specify wether image or progress will be drawen first
 -- @param args.image <i>(optional) </i> image to be displayed
 -- @return `wibox.widget.imagebox` with property progress with is a `awful.widget.progressbar`, draw_image_first, draw_progress_first, swap_first
-function new(args)
+local function new(args)
     local img_first = args.draw_image_first == nil or args.draw_image_first
     local ret = wibox.widget.imagebox()
     ret.progress = awful.widget.progressbar(args)
@@ -53,4 +51,8 @@ function new(args)
     return ret
 end
 
-setmetatable(_M, { __call = function (_, ...) return new(...) end })
+function progressimage.mt:__call(...)
+    return new(...)
+end
+
+return setmetatable(progressimage, progressimage.mt)

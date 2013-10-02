@@ -4,13 +4,11 @@
 -- @release v3.4-503-g4972a28
 --------------------------------------------------------------------------------
 
+local util = {}
+
 local awful = require("awful")
-local ipairs = ipairs
-local table = table
 local beautiful = require("beautiful")
 local vicious = require("vicious")
-
-module("uzful.menu.util")
 
 
 --- Layout Menu
@@ -19,7 +17,7 @@ module("uzful.menu.util")
 -- @param args table with all relevant properties
 -- @param args.align if set to right the icons will be arrange on the right side of the menu
 -- @param args.width <i>(default theme.menu_width) </i> sets menu width
-function layouts(Layouts, args)
+function util.layouts(Layouts, args)
     args = args or {}
     args.width = args.width or theme.menu_width
     local items = {}
@@ -49,7 +47,7 @@ end
 -- The function `visible` returns if vicious widgets are off or on.
 -- @return a table with this properties: widgets, toggle, visible
 -- @usage add widgets to returning widgets list to enable the feature.
-function toggle_widgets ()
+function util.toggle_widgets()
     local widgets = {}
     local show = true
     local toggle = function ()
@@ -68,3 +66,4 @@ function toggle_widgets ()
     return { widgets = widgets, toggle = toggle, visible = visible }
 end
 
+return util
