@@ -4,7 +4,7 @@
 -- @release v3.4-503-g4972a28
 --------------------------------------------------------------------------------
 
-util = {}
+util = { module = {} }
 
 local io = require("io")
 local obvious = {}
@@ -197,5 +197,22 @@ function util.functionlist(list)
         prev = function () current  = current == 1 and #list or current - 1 end,
     }
 end
+
+
+-- from http://stackoverflow.com/questions/15429236/how-to-check-if-a-module-exists-in-lua
+function util.module.exists(pkg, name)
+    if not name then pkg, name = nil, pkg end
+    pkg = pkg or package
+    if pkg.loaded[name] then return true end
+    for _, searcher in ipairs(pkg.searchers or pkg.loaders) do
+        local loader = searcher(name)
+        if type(loader) == 'function' then
+            pkg.preload[name] = loader
+            return true
+        end
+    end
+    return false
+end
+
 
 return util
