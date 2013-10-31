@@ -18,9 +18,11 @@ local capi = {
 
 local udev, ud = nil, nil
 local function initudev()
-    if udev then return end
+    if udev then return true end
+    if not util.module.exists('udev') then return false end
     udev = require("udev") -- https://github.com/dodo/lua-udev
     ud = udev()
+    return true
 end
 
 
@@ -68,7 +70,13 @@ util.listen = {
         return ret
     end,
 
-    sysfs = function (opts, callback) initudev()
+    sysfs = function (opts, callback)
+        if not initudev() then
+            return {
+                callbacks = {callback},
+                timer = (opts.timer or capi.timer({ timeout = opts.timeout or 0.1 })),
+            }
+        end
         if not callback then opts, callback = {}, opts end
         local ret = opts.handle
         if not ret then
@@ -106,7 +114,10 @@ local function get_args(args, key)
     return unpack(arg or {})
 end
 util.scan = {
-    sysfs = function (typ, args) initudev()
+    sysfs = function (typ, args)
+        if not initudev() then
+            return {properties = {}, sysattrs = {}, length = 0}
+        end
         if type(typ) == "table" then typ, args = nil, typ end
         typ = typ or "devices"
         args = args or {}
