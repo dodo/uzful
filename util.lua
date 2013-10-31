@@ -9,7 +9,6 @@ util = { module = {} }
 local io = require("io")
 local obvious = {}
 local vicious = require("vicious")
-local socket = require("socket")   -- luarocks install luasocket
 local unpack = unpack or table.unpack -- v5.1: unpack, v5.2: table.unpack
 local capi = {
     timer = timer,
@@ -22,6 +21,14 @@ local function initudev()
     if not util.module.exists('udev') then return false end
     udev = require("udev") -- https://github.com/dodo/lua-udev
     ud = udev()
+    return true
+end
+
+local socket = nil
+local function initsocket()
+    if socket then return true end
+    if not util.module.exists('socket') then return false end
+    socket = require("socket") -- luarocks install luasocket
     return true
 end
 
@@ -71,7 +78,7 @@ util.listen = {
     end,
 
     sysfs = function (opts, callback)
-        if not initudev() then
+        if not initudev() or not initsocket() then
             return {
                 callbacks = {callback},
                 timer = (opts.timer or capi.timer({ timeout = opts.timeout or 0.1 })),
