@@ -7,6 +7,7 @@
 return {
     util = require("uzful.util"),
     menu = require("uzful.menu"),
+    client = require("uzful.client"),
     layout = require("uzful.layout"),
     widget = require("uzful.widget"),
     getinfo = require("uzful.getinfo"),
