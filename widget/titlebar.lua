@@ -254,120 +254,33 @@ local function new(c, args)
     ret._dir = dir
     ret._mirrored = mirrored
 
-    local rot, ib, tb, m, l, r, f, buttons
-
-    rot = wibox.layout.rotate()
-    ib = wibox.widget.imagebox()
-    tb = wibox.widget.textbox()
-    m = wibox.layout.margin(tb, 4, 4)
-    l = wibox.layout.fixed.horizontal()
-    r = wibox.layout.fixed.horizontal()
-    f = wibox.layout.align.horizontal()
-
-    l:add(ib)
-    l:add(m)
-
-    ret.rotation = rot
-    ret.text = tb
-    ret.icon = ib
-
+    ret.rotation = wibox.layout.rotate()
     box.screen = c.screen
-    box.ontop = true--c.ontop
+    box.ontop = true
+    box:set_widget(ret.rotation)
 
-    buttons = {
-        { "sticky",    state = true, function () c.sticky = not c.sticky end },
-        { "ontop",     state = true, function () c.ontop  = not c.ontop  end },
-        { "maximized", state = true, function ()
-                c.maximized_horizontal = not c.maximized_horizontal
-                c.maximized_vertical   = not c.maximized_vertical
-            end },
-        { "floating",  state = true, function () awful.client.floating.toggle(c) end },
-        { "close", function () c:kill() end },
-    }
-
-    local controls = {}
-    local key
-    for _, con in ipairs(buttons) do
-        local name = con[1]
-        local control = {}
-        controls[name] = control
-
-        for _, focustype in ipairs({"focus", "normal"}) do
-            local focusstate = {}
-            control[focustype] = focusstate
-            for state, val in pairs({active = true, inactive = false}) do
-
-                if con.state then
-                    key = string.format(
-                        "titlebar_%s_button_%s_%s", name, focustype, state)
-                else
-                    key = string.format(
-                        "titlebar_%s_button_%s", name, focustype)
-                end
-
-                focusstate[val] = surface.load(args[key] or theme[key])
-            end
-        end
-
-        control.image = wibox.widget.imagebox()
-        control.state = "normal"
-
-        control.update_image = function ()
-            control.image:set_image(control[control.state][not (not c[name])])
-        end
-        control.image:connect_signal("mouse::enter", function ()
-            control.state = "focus"
-            control.update_image()
-        end)
-        control.image:connect_signal("mouse::leave", function ()
-            control.state = "normal"
-            control.update_image()
-        end)
-
-        if #con > 1 and type(con[2]) == "function" then
-            control.image:buttons(awful.button({ }, 1, con[2]))
-        end
-
-        control.update_image()
-        r:add(control.image)
-    end
-
-    ret.controls = controls
-
-    text(tb, c)
-    ib:set_image(c.icon)
-    f:set_left(l)
-    f:set_right(r)
-    rot:set_widget(f)
-    box:set_widget(rot)
-
-    rot:buttons(awful.button({ }, 1, function ()
+    ret.rotation:buttons(awful.button({ }, 1, function ()
         capi.client.focus = c
+        c:raise()
     end))
 
     local signals = {}
-    signals["property::icon"]     = function () ib:set_image(c.icon)             end
-    signals["property::ontop"]    = function () controls.ontop.update_image()    end
-    signals["property::floating"] = function () controls.floating.update_image() end
     local set_geometry = function () ret:update() end
     signals["property::width"]    = set_geometry
     signals["property::height"]   = set_geometry
     local toggle_focus = function () ret:color(args) end
     signals["unfocus"] = toggle_focus
     signals["focus"]   = toggle_focus
-    local set_name = function () text(tb, c) end
-    signals["property::name"]      = set_name
-    signals["property::icon_name"] = set_name
     local set_visibility = function () ret:visiblity() end
     signals["tagged"]                       = set_visibility
     signals["untagged"]                     = set_visibility
     signals["property::hidden"]             = set_visibility
     signals["property::minimized"]          = set_visibility
     signals["property::fullscreen"]         = set_visibility
-    signals["property::sticky"]   = function ()
-        controls.sticky.update_image()
-        ret:visiblity()
-    end
+--     signals["property::sticky"]   = function ()
+--         controls.sticky.update_image()
+--         ret:visiblity()
+--     end
     signals["property::x"] = function ()
         local geometry = c:geometry()
         local d = ret:direction(geometry)
