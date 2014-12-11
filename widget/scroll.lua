@@ -13,7 +13,7 @@ local cairo = require("lgi").cairo
 local setmetatable = setmetatable
 local pairs = pairs
 local type = type
-local capi = { timer = timer }
+local capi = { timer = (type(timer) == 'table' and timer or require("gears.timer")) }
 
 -- uzful.widget.scroll
 local scroll = { mt = {} }
@@ -156,7 +156,7 @@ local function new(dir, max_size, args)
     ret.control:set_first(ret.arrow.up)
     ret.control:set_third(ret.arrow.down)
     ret.control:connect_signal("widget::updated", ret._emit_updated)
-    
+
     ret:set_widget(args.widget)
 
     return ret

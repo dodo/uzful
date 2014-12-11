@@ -122,7 +122,9 @@ function mt.hide(wid)
     if conf == nil then return end
     if conf.visible then
         wid.menu:hide()
-        wid.menu.layout.timer:stop()
+        if wid.menu.layout.timer.started then
+            wid.menu.layout.timer:stop()
+        end
     end
 end
 
@@ -155,7 +157,7 @@ function mt.toggle_menu(wid, args)
                     screen_s - wid.menu.wibox[lb] or wid.menu.wibox[b]
 
             wid.menu.layout.timer:start()
-        else
+        elseif wid.menu.layout.timer.started then
             wid.menu.layout.timer:stop()
         end
     end

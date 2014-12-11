@@ -11,7 +11,7 @@ local obvious = {}
 local vicious = require("vicious")
 local unpack = unpack or table.unpack -- v5.1: unpack, v5.2: table.unpack
 local capi = {
-    timer = timer,
+    timer = (type(timer) == 'table' and timer or require("gears.timer")),
 }
 
 
