@@ -294,6 +294,7 @@ local function get_tags(tags, screen)
 end
 
 function restore.connect(Layouts)
+    Layouts = Layouts or awful.layout.layouts
     for _, layout in ipairs(Layouts) do
         layouts[awful.layout.getname(layout)] = layout
     end
