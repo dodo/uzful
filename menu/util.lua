@@ -9,6 +9,9 @@ local util = {}
 local awful = require("awful")
 local beautiful = require("beautiful")
 local vicious = require("vicious")
+local capi = {
+    screen = screen,
+}
 
 
 --- Layout Menu
@@ -37,6 +40,17 @@ function util.layouts(Layouts, args)
             item.widget:set_left(item.label)
             item.widget:set_right(item.icon)
         end
+    end
+    -- add this just for convenience
+    menu.menu_switch = function ()
+        local g = capi.screen[mouse.screen].geometry
+        menu:toggle({
+            coords = {
+                x = g.x + g.width,
+                y = g.y,
+            },
+            keygrabber = true,
+        })
     end
     return menu
 end
