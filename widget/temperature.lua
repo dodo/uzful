@@ -11,11 +11,7 @@ local beautiful = require("beautiful")
 local capi = { dbus = dbus }
 local uzful = {
     util = require("uzful.util"),
-    widget = {
-        progressimage = require("uzful.widget.progressimage"),
-        set_properties = require("uzful.widget.util").set_properties,
-    },
-    notifications = require("uzful.notifications.util"),
+    widget = { set_properties = require("uzful.widget.util").set_properties },
 }
 
 -- uzful.widget.temperature({
