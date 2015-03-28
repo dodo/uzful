@@ -39,7 +39,15 @@ util.table = {
             t[k] = v
         end
         return t
-    end
+    end,
+    default = function (t, def)
+        for k, v in pairs(def) do
+            if t[k] == nil then
+                t[k] = v
+            end
+        end
+        return t
+    end,
 }
 
 util.patch = {
