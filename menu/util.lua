@@ -119,31 +119,32 @@ end
 
 
 function util.xrandr(screens, opts) -- ipairs(i, screen ids) pairs(screen id, screen name)
+    opts = opts or {}
+    opts.icons = opts.icons or beautiful.get()
     local localscreen = screens[1] -- first one is always the local screen
     local extscreen = 2 -- second one is default (cannot be first one)
     local menu_screen_text = function () return screens[screens[extscreen]] end
-    local theme = beautiful.get()
     local screensmenu = {
         { "same-as", string.format(
             "xrandr --output %s --auto --output %s --auto --same-as  %s",
             localscreen, screens[extscreen], localscreen),
-            theme.screens_sameas },
+            opts.icons.sameas },
         { "left-of", string.format(
             "xrandr --output %s --auto --output %s --auto --left-of  %s",
             localscreen, screens[extscreen], localscreen),
-            theme.screens_leftof },
+            opts.icons.leftof },
         { "right-of", string.format(
             "xrandr --output %s --auto --output %s --auto --right-of %s",
             localscreen, screens[extscreen], localscreen),
-            theme.screens_rightof },
+            opts.icons.rightof },
         { "above", string.format(
             "xrandr --output %s --auto --output %s --auto --above    %s",
             localscreen, screens[extscreen], localscreen),
-            theme.screens_above },
+            opts.icons.above },
         { "below", string.format(
             "xrandr --output %s --auto --output %s --auto --below    %s",
             localscreen, screens[extscreen], localscreen),
-            theme.screens_below },
+            opts.icons.below },
         { menu_screen_text(), function (m, menu)
             local prev = screens[extscreen]
             extscreen = extscreen + 1
@@ -163,7 +164,7 @@ function util.xrandr(screens, opts) -- ipairs(i, screen ids) pairs(screen id, sc
         table.insert(screensmenu, 1, { "off", string.format(
             "xrandr --output %s --auto --output %s --off",
             localscreen, screens[extscreen]),
-            theme.screens_off })
+            opts.icons.off })
     end
     screensmenu.const = function ()
         local screen = {}
