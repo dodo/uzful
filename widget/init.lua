@@ -7,6 +7,7 @@
 local util = require("uzful.widget.util")
 
 return {
+    repl = require("uzful.widget.repl"),
     span = require("uzful.widget.span"),
     calendar = require("uzful.widget.calendar"),
     titlebar = require("uzful.widget.titlebar"),

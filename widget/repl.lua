@@ -1,15 +1,21 @@
+ --------------------------------------------------------------------------------
+-- @author dodo
+-- @copyright 2015 https://github.com/dodo
+-- @release v3.4-503-g4972a28
+--------------------------------------------------------------------------------
+
+local repl = { mt = {} }
+
+local awful = require("awful")
+local common = require("awful.widget.common")
+local beautiful = require("beautiful")
+local wibox = require("wibox")
+local util = require("uzful.util")
 local capi = {
     client = client,
     mouse = mouse,
     screen = screen
 }
-local awful = require("awful")
-local common = require("awful.widget.common")
-local theme = require("beautiful")
-local wibox = require("wibox")
-local util = require("uzful.util")
-
-local repl = { mt = {} }
 
 -- Options section
 
@@ -43,20 +49,23 @@ local function initialize()
     instance.wibox:set_widget(layout)
 end
 
-function repl.show(scr, reset)
+function repl.show(scr, args)
+    if type(scr) == 'table' then scr, args = nil, scr end
+    args = args or {}
     if not instance.wibox then
         initialize()
-    elseif instance.wibox.visible and not reset then -- Menu already shown, exit
+    elseif instance.wibox.visible and not args.reset then -- Menu already shown, exit
         return
     end
+    util.table.default(args, repl.prompt_args)
 
     -- Set position and size
-    scr = scr or capi.mouse.screen or 1
+    scr = scr or args.screen or capi.mouse.screen or 1
     local function update()
         local scrgeom = capi.screen[scr].workarea
         local geometry = repl.geometry
-        local _height = geometry.height or theme.get_font_height() * 1.5
-        _height = _height + instance.lines * theme.get_font_height()
+        local _height = geometry.height or beautiful.get_font_height() * 1.5
+        _height = _height + instance.lines * beautiful.get_font_height()
 
         instance.widget:set_text(instance.text)
         instance.wibox:geometry({x = geometry.x or scrgeom.x,
@@ -96,7 +105,9 @@ function repl.show(scr, reset)
                 repl.enabled = false
                 repl.hide()
             else
-                repl.show(src, true)
+                args.reset = true
+                repl.show(src, args)
+                args.reset = false
             end
         end
     )
