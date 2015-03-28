@@ -8,6 +8,7 @@ local util = require("uzful.menu.util")
 local daemon = require("uzful.menu.daemon")
 
 return {
+    switch = require("uzful.menu.switch"),
     wallpaper = require("uzful.menu.wallpaper"),
     toggle_widgets = util.toggle_widgets,
     tag_info = util.tag_info,
