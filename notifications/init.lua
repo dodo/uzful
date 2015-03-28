@@ -5,8 +5,12 @@
 --------------------------------------------------------------------------------
 
 local widget = require("uzful.notifications.widget")
+local util = require("uzful.notifications.util")
 
 return setmetatable({
     patch = widget.patch,
+    critical = util.critical,
+    debug = util.debug,
     widget = widget,
+    util = util,
 }, { __call = function (_, ...) return widget(...) end })
