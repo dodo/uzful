@@ -9,6 +9,7 @@ local util = require("uzful.widget.util")
 return {
     repl = require("uzful.widget.repl"),
     span = require("uzful.widget.span"),
+    battery = require("uzful.widget.battery"),
     calendar = require("uzful.widget.calendar"),
     titlebar = require("uzful.widget.titlebar"),
     netgraphs = require("uzful.widget.netgraphs"),
