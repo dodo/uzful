@@ -68,37 +68,38 @@ function repl.show(scr, reset)
     update()
 
     local abort = true
-    awful.prompt.run(repl.prompt_args, instance.prompt.widget,
-                function(s)
-                    if s == 8 or s == 'quit' or s == 'exit' or s == ':q' then
-                        abort = true
-                    elseif s == 'clear' or s == 'reset' then
-                        abort = false
-                        instance.text = ""
-                        instance.lines = 0
-                        instance.prepend = ''
-                    else
-                        abort = false
-                        repl.write(repl.prompt_args.prompt .. s .. '\n')
-                        repl.run(s)
-                    end
-                end,                       -- exe_callback
-                function (text, cur_pos, ncomp)
-                    local keywords = {}
-                    for k,_ in pairs(_G) do
-                        table.insert(keywords, k)
-                    end
-                    return awful.completion.generic(text, cur_pos, ncomp, keywords)
-                end,                       -- completion_callback
-                awful.util.getdir("cache") .. "/history_repl",
-                nil, function ()           -- done_callback
-                    if abort then
-                        repl.enabled = false
-                        repl.hide()
-                    else
-                        repl.show(src, true)
-                    end
-                end)
+    awful.prompt.run(args, instance.prompt.widget,
+        function(s) -- exe_callback
+            if s == 8 or s == 'quit' or s == 'exit' or s == ':q' then
+                abort = true
+            elseif s == 'clear' or s == 'reset' then
+                abort = false
+                instance.text = ""
+                instance.lines = 0
+                instance.prepend = ''
+            else
+                abort = false
+                repl.write(args.prompt .. s .. '\n')
+                repl.run(s)
+            end
+        end,
+        function (text, cur_pos, ncomp) -- completion_callback
+            local keywords = {}
+            for k,_ in pairs(_G) do
+                table.insert(keywords, k)
+            end
+            return awful.completion.generic(text, cur_pos, ncomp, keywords)
+        end,
+        awful.util.getdir("cache") .. "/history_repl",
+        nil, function () -- done_callback
+            if abort then
+                repl.enabled = false
+                repl.hide()
+            else
+                repl.show(src, true)
+            end
+        end
+    )
     instance.wibox.visible = true
     repl.enabled = true
 end
