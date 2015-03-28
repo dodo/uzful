@@ -10,13 +10,15 @@ graphs for cpu and network usage for wibox with detailed info boxes.
 
 `uzful.widget.netgraphs` returns a layout for an infobox to show detailed information about network usage (all interfaces).
 
+Collection of other useful widgets, extensions and functions.
+
 ## Motivation
 
 cleaner awesome/rc.lua
 
 ## Dependencies
 
-* [awesome](http://awesome.naquadah.org/) >=3.4.9 (buggy, better is git version)
+* [awesome](http://awesome.naquadah.org/) >=3.5
 * [vicious](http://git.sysphere.org/vicious/)
 * [obvious](http://git.mercenariesguild.net/?p=obvious.git) (optional) need for uzful.util.volume
 
