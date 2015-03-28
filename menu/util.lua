@@ -117,4 +117,66 @@ function util.tag_info(opts)
     }
 end
 
+
+function util.xrandr(screens, opts) -- ipairs(i, screen ids) pairs(screen id, screen name)
+    local localscreen = screens[1] -- first one is always the local screen
+    local extscreen = 2 -- second one is default (cannot be first one)
+    local menu_screen_text = function () return screens[screens[extscreen]] end
+    local theme = beautiful.get()
+    local screensmenu = {
+        { "same-as", string.format(
+            "xrandr --output %s --auto --output %s --auto --same-as  %s",
+            localscreen, screens[extscreen], localscreen),
+            theme.screens_sameas },
+        { "left-of", string.format(
+            "xrandr --output %s --auto --output %s --auto --left-of  %s",
+            localscreen, screens[extscreen], localscreen),
+            theme.screens_leftof },
+        { "right-of", string.format(
+            "xrandr --output %s --auto --output %s --auto --right-of %s",
+            localscreen, screens[extscreen], localscreen),
+            theme.screens_rightof },
+        { "above", string.format(
+            "xrandr --output %s --auto --output %s --auto --above    %s",
+            localscreen, screens[extscreen], localscreen),
+            theme.screens_above },
+        { "below", string.format(
+            "xrandr --output %s --auto --output %s --auto --below    %s",
+            localscreen, screens[extscreen], localscreen),
+            theme.screens_below },
+        { menu_screen_text(), function (m, menu)
+            local prev = screens[extscreen]
+            extscreen = extscreen + 1
+            if extscreen > #screens then extscreen = 2 end
+            m.label:set_text(menu_screen_text())
+            for _, item in ipairs(menu.items) do
+                if type(item.cmd) == 'string' then
+                    item.cmd = string.gsub(item.cmd, prev, screens[extscreen])
+                end
+            end
+            return true -- dont close menu
+        end },
+        menu_text = menu_screen_text,
+        theme = opts and opts.theme or nil,
+    }
+    if capi.screen.count() > 1 then
+        table.insert(screensmenu, 1, { "off", string.format(
+            "xrandr --output %s --auto --output %s --off",
+            localscreen, screens[extscreen]),
+            theme.screens_off })
+    end
+    screensmenu.const = function ()
+        local screen = {}
+        for i, s in ipairs(screens) do
+            if i == 1 then
+                screen[s] = 1
+            else
+                screen[s] = 2
+            end
+        end
+        return screen
+    end
+    return screensmenu
+end
+
 return util

@@ -14,5 +14,6 @@ return {
     layouts = util.layouts,
     clients = daemon.clients,
     daemons = daemon,
+    xrandr = util.xrandr,
     util = util,
 }
