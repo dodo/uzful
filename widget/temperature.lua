@@ -42,7 +42,7 @@ local function new(args)
     if args.graph ~= false then
         ret.graph = awful.widget.graph({
             width = args.width, height = args.height })
-        uzful.widget.set_properties(mytemp.graph, {
+        uzful.widget.set_properties(ret.graph, {
             border_color = nil,
             color = args.color or "#AA0000",
             background_color = args.bgcolor or "#000000" })
