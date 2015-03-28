@@ -74,14 +74,18 @@ util.listen = {
     -- @param slot specify the way you want to get your data. should be smth like 'text' (string), or 'value' (number)
     -- @param callback the callback function wich will be invoked. can get the value
     vicious = function (slot, callback)
-        local old_value = "…"
-        slot = "text" == slot and "markup" or slot
+        local old_value = "text" == slot and "…" or 1
+        local mname = "text" == slot and "markup" or slot
         ret = {}
-        ret["set_" .. slot] = function (_, value)
+        ret["set_" .. mname] = function (_, value)
                 if value == old_value then return end
                 old_value = value
                 callback(value)
             end
+        ret["get_" .. slot] = function ()
+            return old_value
+        end
+        ret["get_" .. slot] = ret["get_" .. mname]
         return ret
     end,
 
@@ -253,7 +257,7 @@ function util.string.gsplit(s, sep, plain)
             return s:sub(start)
         end
     end
-    return function()
+    return function ()
         if done then return end
         if sep == '' then done = true return s end
         return pass(s:find(sep, start, plain))
