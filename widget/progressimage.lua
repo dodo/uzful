@@ -8,7 +8,6 @@ local progressimage = { mt = {} }
 
 local awful = require("awful")
 local wibox = require("wibox")
-local widget = require("uzful.widget.util")
 
 
 --- Progressbar and Image Glue
