@@ -7,8 +7,10 @@
 local util = {}
 
 local awful = require("awful")
+local naughty = require("naughty")
 local beautiful = require("beautiful")
 local vicious = require("vicious")
+local uzful = { layout = { util = require("uzful.layout.util") } }
 local capi = {
     screen = screen,
 }
@@ -78,6 +80,41 @@ function util.toggle_widgets()
     end
     local visible = function () return show end
     return { widgets = widgets, toggle = toggle, visible = visible }
+end
+
+function util.tag_info(opts)
+    opts = opts or {}
+    local tagstatus = function ()
+        local ncol = awful.tag.getncol()
+        local nmaster = awful.tag.getnmaster()
+        local mwfact = awful.tag.getmwfact() * 100
+        naughty.notify({ text = string.format(
+            "master width factor is now %d%%\nnmaster is now %d\nncol is now %d",
+            mwfact, nmaster, ncol
+        )})
+    end
+    return { theme = opts.theme,
+        { "status", tagstatus },
+        { "invert master width factor", function ()
+            awful.tag.setmwfact(1 - awful.tag.getmwfact())
+            naughty.notify({ text = string.format(
+                "master width factor is now %d%%", awful.tag.getmwfact() * 100
+            )})
+        end },
+        { "swap column master", function ()
+            local ncol = awful.tag.getncol()
+            local nmaster = awful.tag.getnmaster()
+            awful.tag.setnmaster(ncol)
+            awful.tag.setncol(nmaster)
+            naughty.notify({ text = string.format(
+                "nmaster is now %d\nncol is now %d", nmaster, ncol
+            )})
+        end },
+        { "reset", function ()
+            uzful.layout.util.reset()
+            tagstatus()
+        end },
+    }
 end
 
 return util

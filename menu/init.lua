@@ -10,6 +10,7 @@ local daemon = require("uzful.menu.daemon")
 return {
     wallpaper = require("uzful.menu.wallpaper"),
     toggle_widgets = util.toggle_widgets,
+    tag_info = util.tag_info,
     layouts = util.layouts,
     clients = daemon.clients,
     daemons = daemon,
