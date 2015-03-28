@@ -14,6 +14,7 @@ return {
     netgraphs = require("uzful.widget.netgraphs"),
     cpugraphs = require("uzful.widget.cpugraphs"),
     bandgraph = require("uzful.widget.bandgraph"),
+    temperature = require("uzful.widget.temperature"),
     progressimage = require("uzful.widget.progressimage"),
     set_properties = util.set_properties,
     infobox = util.infobox,
