@@ -6,7 +6,19 @@
 
 local battery = { mt = {} }
 
+-- constants
+local kdeconnect = {}
+battery.kdeconnect = kdeconnect
+kdeconnect.BUS = 'session'
+kdeconnect.PATH = '/modules/kdeconnect'
+kdeconnect.DESTINATION = 'org.kde.kdeconnect'
+kdeconnect.INTERFACE = {
+    device = 'org.kde.kdeconnect.device',
+    battery = 'org.kde.kdeconnect.device.battery',
+}
+
 local vicious = require("vicious")
+local luadbus = require("lua-dbus")
 local beautiful = require("beautiful")
 local capi = { dbus = dbus }
 local uzful = {
@@ -14,6 +26,7 @@ local uzful = {
     widget = {
         progressimage = require("uzful.widget.progressimage"),
         set_properties = require("uzful.widget.util").set_properties,
+        hidable = require("uzful.widget.util").hidable,
     },
     notifications = require("uzful.notifications.util"),
 }
@@ -38,7 +51,11 @@ function battery.phone(args)
     args.normal = args.normal or "#000000"
     args.charge = args.charge or "#6E9931"
     args.critical = args.critical or "#8C0000"
-    local ret = { set_value = battery.set_value }
+    local ret = {
+        id = args.id,
+        charging = false,
+        set_value = battery.set_value,
+    }
     -- Battery Text
     if args.text ~= false then
         ret.text = wibox.widget.textbox()
@@ -46,31 +63,97 @@ function battery.phone(args)
         ret.text:set_text("?")
     end
     -- phone status via kdeconnect
-    ret.widget = uzful.widget.progressimage({
+    ret.widget = uzful.widget.hidable(uzful.widget.progressimage({
         image = args.theme.battery,
-        x = args.x, y = args.y, width = args.width, height = args.height })
+        x = args.x, y = args.y, width = args.width, height = args.height }))
     uzful.widget.set_properties(ret.widget.progress, {
         ticks = true, ticks_gap = 1,  ticks_size = 1,
         vertical = true, background_color = args.normal,
         border_color = nil, color = args.color })
---     vicious.register(mybattery.widget.progress, vicious.widgets.bat, "$2", 60, "BAT0")
-    -- TODO show info if charging or not
+    -- test if kdeconnect is on
+    luadbus.call('forceOnNetworkChange', function (err)
+        if err then
+            ret.widget.hide()
+        end
+    end, {
+        destination = kdeconnect.DESTINATION,
+        interface = kdeconnect.INTERFACE.device,
+        path = kdeconnect.PATH,
+        bus = kdeconnect.BUS,
+    })
+    -- TODO show info if charging sign in text! or not
     -- TODO filter for device id
     ret.ticks = uzful.util.threshold(args.threshold.full or 0.9,
         function () uzful.widget.set_properties(ret.widget.progress, { ticks = false }) end,
         function () uzful.widget.set_properties(ret.widget.progress, { ticks = true  }) end)
     ret.critical = uzful.notifications.critical({
+        title = "Critical Phone Battery Charge",
         threshold = args.threshold.low or 0.2,
         empty = args.threshold.empty or 0.1,
         silent = (args.notifications == false),
         widget = ret.widget.progress,
-        normal = args.normal, critical = args.critical })
-    capi.dbus.connect_signal('org.kde.kdeconnect.device.battery', function (ev, charge)
-        ret:set_value((charge or 0) / 100)
-    end)
-    capi.dbus.add_match("session", "type='signal',"
-        .. "interface='org.kde.kdeconnect.device.battery',"
-        .. "member='chargeChanged'")
+        normal = args.normal, critical = args.critical,
+        on = function ()
+            if ret.charging then
+                return args.charge
+            end
+        end,
+        off = function ()
+            if ret.charging then
+                return args.charge
+            end
+        end })
+    local function change_state(state)
+        ret.charging = (state == true)
+        ret.widget.progress:set_background_color(ret.charging and args.charge or args.normal)
+    end
+    -- which path is thid listening on?
+    luadbus.on('stateChanged', change_state, {
+        bus = kdeconnect.BUS, interface = kdeconnect.INTERFACE.battery })
+    luadbus.on('chargeChanged', function (charge)
+        ret:set_value((charge or 100) / 100)
+        ret.widget.show()
+    end, { bus = kdeconnect.BUS, interface = kdeconnect.INTERFACE.battery })
+
+    if args.id then
+        -- get initial state
+        luadbus.call('charge', function (charge)
+            ret:set_value((tonumber(charge) or 100) / 100)
+        end, {
+            destination = kdeconnect.DESTINATION,
+            interface = kdeconnect.INTERFACE.battery,
+            path = kdeconnect.PATH .. '/devices/' .. args.id,
+            bus = kdeconnect.BUS,
+        })
+        luadbus.call('isCharging', change_state, {
+            destination = kdeconnect.DESTINATION,
+            interface = kdeconnect.INTERFACE.battery,
+            path = kdeconnect.PATH .. '/devices/' .. args.id,
+            bus = kdeconnect.BUS,
+        })
+        -- update reachability
+        ret.update = function ()
+            luadbus.call('isReachable', function (reachable)
+                if reachable == true then
+                    ret.widget.show()
+                else -- false or error
+                    ret.widget.hide()
+                end
+            end, {
+                destination = kdeconnect.DESTINATION,
+                interface = kdeconnect.INTERFACE.device,
+                path = kdeconnect.PATH .. '/devices/' .. args.id,
+                bus = kdeconnect.BUS,
+            })
+        end
+        ret.update()
+        luadbus.on('reachableStatusChanged', ret.update, {
+            interface = kdeconnect.INTERFACE.device,
+            bus = kdeconnect.BUS,
+        })
+    else
+        ret.update = function () end -- noop
+    end
     return ret
 end
 
@@ -135,6 +218,13 @@ local function new(args)
         widget = ret.widget.progress,
         normal = args.normal, critical = args.critical,
         silent = (args.notifications == false),
+        on = function ()
+            if not battery_online then
+                return args.hidden
+            elseif power_supply_online then
+                return args.charge
+            end
+        end,
         off = function ()
             if not battery_online then
                 return args.hidden
