@@ -155,8 +155,8 @@ local function get_tag_numbers(tags)
 end
 
 
-function restore.disconnect()
-    local filename = "_savepoint"
+function restore.disconnect(filename)
+    filename = filename or "_savepoint"
     local data = load(filename)
     for s = 1, capi.screen.count() do
         local screendata = data[s] or {}
@@ -293,14 +293,16 @@ local function get_tags(tags, screen)
     return ret
 end
 
-function restore.connect(Layouts)
-    Layouts = Layouts or awful.layout.layouts
-    for _, layout in ipairs(Layouts) do
+function restore.connect(opts)
+    otps = opts or {}
+    opts.layouts = opts.layouts or awful.layout.layouts
+    opts.filename = opts.filename or "_savepoint"
+    for _, layout in ipairs(opts.layouts) do
         layouts[awful.layout.getname(layout)] = layout
     end
 
     local ret = {}
-    local data = load("_savepoint")
+    local data = load(opts.filename)
     data.windows = data.windows or {}
     ret.ids = {}
 
