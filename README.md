@@ -20,7 +20,8 @@ cleaner awesome/rc.lua
 
 * [awesome](http://awesome.naquadah.org/) >=3.5
 * [vicious](http://git.sysphere.org/vicious/)
-* [obvious](http://git.mercenariesguild.net/?p=obvious.git) (optional) need for uzful.util.volume
+* [obvious](http://git.mercenariesguild.net/?p=obvious.git) (optional) needed for uzful.util.volume
+* [lua-dbus](https://github.com/dodo/lua-dbus) (optional) needed for uzful.widget.wicd or uzful.widget.battery.phone
 
 ## Usage
 
