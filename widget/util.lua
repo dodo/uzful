@@ -47,6 +47,33 @@ function util.set_properties(widget, properties)
     return widget
 end
 
+function util.hidable(widget)
+    local fit = widget.fit
+    local draw = widget.draw
+    widget.hidden = false
+    widget.fit = function (...)
+        if widget.hidden then
+            return -1, -1
+        else
+            return fit(...)
+        end
+    end
+    widget.draw = function (...)
+        if not widget.hidden then
+            return draw(...)
+        end
+    end
+    widget.show = function ()
+        widget.hidden = false
+        widget:emit_signal("widget::updated")
+    end
+    widget.hide = function ()
+        widget.hidden = true
+        widget:emit_signal("widget::updated")
+    end
+    return widget
+end
+
 --- wibox presettings for an infobox
 -- type = notification
 -- visible = false

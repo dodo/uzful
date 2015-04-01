@@ -20,6 +20,7 @@ return {
     temperature = require("uzful.widget.temperature"),
     progressimage = require("uzful.widget.progressimage"),
     set_properties = util.set_properties,
+    hidable = util.hidable,
     infobox = util.infobox,
     wibox = util.wibox,
     util = util,
