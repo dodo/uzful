@@ -319,7 +319,9 @@ function restore.connect(opts)
         if screendata.tags and #screendata.tags then
             awful.tag.viewmore(get_tags(screendata.tags, s), s)
         end
-        ret[s] = create_screen_info(s)
+        if opts.info ~= false then
+            ret[s] = create_screen_info(s)
+        end
     end
 
     local randi = 0
@@ -330,10 +332,12 @@ function restore.connect(opts)
             window.id = randi
         end
         local win = ret[window.screen]
-        win.layout:add(window.text)
-        win.length = win.length + 1
-        win.windows[window.id] = window
-        ret.ids[window.id] = window -- kill switch
+        if win then
+            win.layout:add(window.text)
+            win.length = win.length + 1
+            win.windows[window.id] = window
+            ret.ids[window.id] = window -- kill switch
+        end
     end
 
     capi.awesome.connect_signal("exit", restore.disconnect)
@@ -357,9 +361,11 @@ function restore.connect(opts)
                 client:tags(get_tags(window.tags, client.screen))
             end
             local win = ret[client.screen]
-            win.length = win.length - 1
-            window.remove()
-            win.rebuild()
+            if win then
+                win.length = win.length - 1
+                window.remove()
+                win.rebuild()
+            end
         end
     end)
 
