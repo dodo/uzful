@@ -48,7 +48,8 @@ function util.critical(args)
     return uzful.util.threshold(args.threshold or 0.2,
         function (val)
             old_val = val
-            args.widget:set_background_color(args.normal)
+            local oncolor = args.on and args.on() or args.normal
+            args.widget:set_background_color(oncolor)
             if notification then naughty.destroy(notification) end
         end,
         function (val)
