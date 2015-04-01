@@ -6,6 +6,13 @@
 
 local wicd = { mt = {} }
 
+-- constants
+wicd.BUS = 'system'
+wicd.PATH = '/org/wicd/daemon'
+wicd.INTERFACE = 'org.wicd.daemon'
+
+
+local luadbus = require("lua-dbus")
 local beautiful = require("beautiful")
 local capi = { dbus = dbus }
 local uzful = {
@@ -40,8 +47,8 @@ local function new(args)
         if args.font then ret.text:set_font(args.font) end
         ret.text:set_text(" ")
     end
-    local connecting = false -- FIXME get initial state
-    capi.dbus.connect_signal("org.wicd.daemon", function (ev, status, data)
+    local connecting = false
+    ret.change = function (status, data)
         local state = ({
             "not_connected","connecting","wireless","wired","suspended"
         })[status + 1] or "unknown"
@@ -66,9 +73,17 @@ local function new(args)
             if text == "" or text == "\n" then text = " " end
             ret.text:set_text(text)
         end
-    end)
-    capi.dbus.add_match("system",
-             "type='signal',interface='org.wicd.daemon',member='StatusChanged'")
+    end
+    luadbus.on('StatusChanged', ret.change, { bus = wicd.BUS, interface = wicd.INTERFACE })
+    -- get initial state
+    luadbus.call('GetConnectionStatus', function (args)
+        ret.change(unpack(args))
+    end, {
+        destination = wicd.INTERFACE,
+        interface = wicd.INTERFACE,
+        path = wicd.PATH,
+        bus = wicd.BUS,
+    })
     return ret
 end
 
