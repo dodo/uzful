@@ -294,7 +294,7 @@ local function get_tags(tags, screen)
 end
 
 function restore.connect(opts)
-    otps = opts or {}
+    opts = opts or {}
     opts.layouts = opts.layouts or awful.layout.layouts
     opts.filename = opts.filename or "_savepoint"
     for _, layout in ipairs(opts.layouts) do
