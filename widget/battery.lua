@@ -133,12 +133,23 @@ function battery.phone(args)
         })
         -- update reachability
         ret.update = function ()
-            luadbus.call('isReachable', function (reachable)
-                if reachable == true then
-                    ret.widget.show()
-                else -- false or error
+            luadbus.call('isPaired', function (paired)
+                if paired ~= true then
                     ret.widget.hide()
+                    return
                 end
+                luadbus.call('isReachable', function (reachable)
+                    if reachable == true then
+                        ret.widget.show()
+                    else -- false or error
+                        ret.widget.hide()
+                    end
+                end, {
+                    destination = kdeconnect.DESTINATION,
+                    interface = kdeconnect.INTERFACE.device,
+                    path = kdeconnect.PATH .. '/devices/' .. args.id,
+                    bus = kdeconnect.BUS,
+                })
             end, {
                 destination = kdeconnect.DESTINATION,
                 interface = kdeconnect.INTERFACE.device,
@@ -148,6 +159,14 @@ function battery.phone(args)
         end
         ret.update()
         luadbus.on('reachableStatusChanged', ret.update, {
+            interface = kdeconnect.INTERFACE.device,
+            bus = kdeconnect.BUS,
+        })
+        luadbus.on('pairingSuccessful', ret.update, {
+            interface = kdeconnect.INTERFACE.device,
+            bus = kdeconnect.BUS,
+        })
+        luadbus.on('unpaired', ret.update, {
             interface = kdeconnect.INTERFACE.device,
             bus = kdeconnect.BUS,
         })
