@@ -66,6 +66,9 @@ local function new(args)
                 if args.onconnect then args.onconnect(data[1]) end
             end
             ret.widget.progress:set_value(nil)
+            if state == "not_connected" or state == "suspended" then
+            if args.ondisconnect then args.ondisconnect() end
+            end
         end
         if ret.text then
             local text = ""
