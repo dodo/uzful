@@ -301,8 +301,11 @@ function restore.connect(opts)
         layouts[awful.layout.getname(layout)] = layout
     end
 
-    local ret = {}
-    local data = load(opts.filename)
+    local ret, data = {}
+    if opts.load ~= false then
+        data = load(opts.filename)
+    end
+    data = data or {}
     data.windows = data.windows or {}
     ret.ids = {}
 
@@ -340,7 +343,9 @@ function restore.connect(opts)
         end
     end
 
-    capi.awesome.connect_signal("exit", restore.disconnect)
+    if opts.save ~= false then
+        capi.awesome.connect_signal("exit", restore.disconnect)
+    end
     capi.client.connect_signal("manage", function (client)
 
         local window = ret.ids[client.window] -- matches after restart
