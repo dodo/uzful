@@ -12,6 +12,7 @@ local wibox = require("wibox")
 local luadbus = require("lua-dbus")
 local luampris = require("lua-mpris")
 local beautiful = require("beautiful")
+local uzful = { widget = require("uzful.widget.util") }
 
 
 function mpris.menu.new(args)
@@ -23,7 +24,7 @@ function mpris.menu.new(args)
     menu.player = args.player
     local control = {
         prev = menu:add({
-            new = mpris.menu.entry,
+            new = mpris.menu.item,
             icon = args.theme.previous,
             property = 'CanGoPrevious',
             cmd = function ()
@@ -31,21 +32,21 @@ function mpris.menu.new(args)
             end,
         }),
         stop = menu:add({
-            new = mpris.menu.entry,
+            new = mpris.menu.item,
             icon = args.theme.stopped,
             cmd = function ()
                 menu.player:stop()
             end,
         }),
         play = menu:add({
-            new = mpris.menu.entry,
+            new = mpris.menu.item,
             icon = args.theme.none,
             cmd = function ()
                 menu.player:playpause()
             end,
         }),
         next = menu:add({
-            new = mpris.menu.entry,
+            new = mpris.menu.item,
             icon = args.theme.next,
             property = 'CanGoNext',
             cmd = function ()
@@ -54,6 +55,7 @@ function mpris.menu.new(args)
         }),
     }
     menu.player:change('player', 'PlaybackStatus', function (status)
+        menu.player.playerbackstatus = tostring(status):lower()
         control.prev.recheck()
         control.next.recheck()
         if status == 'Playing' then
@@ -83,11 +85,21 @@ function mpris.menu.new(args)
                 control.play.update()
             end)
         end
+        -- show last action of all players
+        if menu.parent and menu.parent.launcher then
+            menu.parent.launcher.select(menu.player.id)
+        end
     end)
+    menu.items.cmd = function ()
+        if menu.parent and menu.parent.launcher then
+            menu.parent.launcher.select(menu.player.id)
+        end
+        return true -- dont close menu
+    end
     return menu
 end
 
-function mpris.menu.entry(parent, args)
+function mpris.menu.item(parent, args)
     args = args or {}
     local ret = { akey = '', flags = {} }
     ret.icon = wibox.widget.imagebox()
@@ -143,14 +155,16 @@ local function new(args)
     args.theme = args.theme or beautiful.get()
     local menu = awful.menu()
     local  ret = awful.widget.launcher({
-         image = args.theme.stopped,
+         image = args.theme.none,
           menu = menu,
     })
-    ret.players = {}
+    ret = uzful.widget.hidable(ret)
     ret.menu    = menu
     ret.client  = luampris.Client:new()
+    menu.launcher = ret
 
-    ret.entry = function (name, player)
+    ret.item = function (name, player)
+        ret.show()
         local icon = args.theme.none
         if args.lookup_icon then
             icon = args.lookup_icon(player.id) or icon
@@ -159,41 +173,98 @@ local function new(args)
             player = player,
             theme = args.theme,
         })
-        local entry = ret.menu:add({ player.id, submenu.items, icon })
+        local item = ret.menu:add({ player.id, submenu.items, icon, theme = { submenu = "○" } })
         ret.menu.child[#ret.menu.items] = submenu
         submenu.parent = ret.menu
-        table.insert(ret.players, player)
+        player.submenu = submenu
+        player.menu = item
     end
 
     ret.client:getPlayers(function (players)
         for name, player in pairs(players) do
-            ret.entry(name, player)
+            ret.item(name, player)
         end
     end)
 
-    local showmenu = menu.show
-    ret.menu.show = function (...)
-        local arguments = {...}
-        ret.client:getPlayerNames(function (names)
-            local playernames = {}
-            for i = #ret.players,1,-1 do
-                local player = ret.players[i]
-                table.insert(playernames, player.name)
-                if not haz(names, player.name) then
-                    print("close player", player.name, i)
-                    player:close()
-                    ret.menu:delete(i)
-                    table.remove(ret.players, i)
+    if args.realtime ~= false then
+        ret.hide()
+        ret.client:onPlayer(function (player)
+            if player.closed then
+                if ret.last_player == player then
+                    ret.select()
                 end
-            end
-            for _, name in ipairs(names) do
-                if not haz(playernames, name) then
-                    local opts = ret.client
-                    ret.entry(name, luampris.Client.Player:new(name, opts))
+                if player.menu then
+                    ret.menu:delete(player.menu)
+                    if #ret.menu.items == 0 then
+                        ret.hide()
+                    end
                 end
+            elseif not player.menu then
+                ret.item(player.name, player)
             end
-            showmenu(unpack(arguments))
         end)
+    else
+        local showmenu = menu.show
+        ret.menu.show = function (...)
+            local arguments = {...}
+            ret.client:updatePlayers(function (added, removed, unchanged)
+                for _, player in ipairs(removed) do
+                    if ret.last_player == player then
+                        ret.select()
+                    end
+                    if player.menu then
+                        ret.menu:delete(player.menu)
+                    end
+                end
+                for _, player in ipairs(added) do
+                    ret.item(player.name, player)
+                end
+                return showmenu(unpack(arguments))
+            end)
+        end
+    end
+
+    -- add lua controls
+
+    ret.select = function (name)
+        if ret.last_player and ret.last_player.menu then
+            ret.last_player.menu.sep:set_text("○")
+        end
+        if name and ret.client.players then
+            for _, player in pairs(ret.client.players) do
+                if player.id == name then
+                    local image = args.theme[player.playerbackstatus]
+                    ret:set_image(image or args.theme.none)
+                    ret.last_player = player
+                    if player.menu then
+                        player.menu.sep:set_text("●")
+                    end
+                    return player
+                end
+            end
+        end
+        ret:set_image(args.theme.none)
+        ret.last_player = nil
+    end
+    ret.previous = function ()
+        if ret.last_player then
+            ret.last_player:previous()
+        end
+    end
+    ret.stop = function ()
+        if ret.last_player then
+            ret.last_player:stop()
+        end
+    end
+    ret.playpause = function ()
+        if ret.last_player then
+            ret.last_player:playpause()
+        end
+    end
+    ret.next = function ()
+        if ret.last_player then
+            ret.last_player:next()
+        end
     end
 
     return ret
