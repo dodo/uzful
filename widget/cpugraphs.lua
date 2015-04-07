@@ -8,8 +8,8 @@ local graph = { mt = {} }
 
 local awful = require("awful")
 local wibox = require("wibox")
-local vicious = require("vicious")
-local helpers = require("vicious.helpers")
+local _, vicious = pcall(require, "vicious")
+local _, helpers = pcall(require, "vicious.helpers")
 local layout = require("uzful.layout.util")
 local widget = require("uzful.widget.util")
 local getinfo = require("uzful.getinfo")

@@ -10,8 +10,8 @@ local os = require('os')
 local wibox = require("wibox")
 local awful = require("awful")
 local naughty = require("naughty")
-local vicious = require("vicious")
-local helpers = require("vicious.helpers")
+local _, vicious = pcall(require, "vicious")
+local _, helpers = pcall(require, "vicious.helpers")
 local beautiful = require("beautiful")
 local uzful = { widget = { scroll = require('uzful.widget.scroll') } }
 local widgets = {}

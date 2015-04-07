@@ -17,8 +17,8 @@ kdeconnect.INTERFACE = {
     battery = 'org.kde.kdeconnect.device.battery',
 }
 
-local vicious = require("vicious")
-local luadbus = require("lua-dbus")
+local _, vicious = pcall(require, "vicious")
+local _, luadbus = pcall(require, "lua-dbus")
 local beautiful = require("beautiful")
 local capi = { dbus = dbus }
 local uzful = {

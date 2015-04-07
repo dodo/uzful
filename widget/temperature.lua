@@ -6,7 +6,7 @@
 
 local temperature = { mt = {} }
 
-local vicious = require("vicious")
+local _, vicious = pcall(require, "vicious")
 local beautiful = require("beautiful")
 local capi = { dbus = dbus }
 local uzful = {

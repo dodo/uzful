@@ -7,7 +7,7 @@
 
 local calendar = { mt = {} }
 
-local helper = require("vicious.helpers")
+local _, helper = pcall(require, "vicious.helpers")
 local wibox = require("wibox")
 
 

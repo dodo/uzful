@@ -9,8 +9,8 @@ local mpris = { menu = {}, mt = {} }
 
 local awful = require("awful")
 local wibox = require("wibox")
-local luadbus = require("lua-dbus")
-local luampris = require("lua-mpris")
+local _, luadbus = pcall(require, "lua-dbus")
+local _, luampris = pcall(require, "lua-mpris")
 local beautiful = require("beautiful")
 local uzful = { widget = require("uzful.widget.util") }
 

@@ -12,7 +12,7 @@ wicd.PATH = '/org/wicd/daemon'
 wicd.INTERFACE = 'org.wicd.daemon'
 
 
-local luadbus = require("lua-dbus")
+local _, luadbus = pcall(require, "lua-dbus")
 local beautiful = require("beautiful")
 local capi = { dbus = dbus }
 local uzful = {

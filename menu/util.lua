@@ -9,7 +9,7 @@ local util = {}
 local awful = require("awful")
 local naughty = require("naughty")
 local beautiful = require("beautiful")
-local vicious = require("vicious")
+local _, vicious = pcall(require, "vicious")
 local uzful = { layout = { util = require("uzful.layout.util") } }
 local capi = {
     screen = screen,
