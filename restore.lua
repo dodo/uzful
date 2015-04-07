@@ -344,7 +344,9 @@ function restore.connect(opts)
     end
 
     if opts.save ~= false then
-        capi.awesome.connect_signal("exit", restore.disconnect)
+        capi.awesome.connect_signal("exit", function ()
+            restore.disconnect(opts.filename)
+        end)
     end
     capi.client.connect_signal("manage", function (client)
 
