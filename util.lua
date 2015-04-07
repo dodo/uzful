@@ -8,6 +8,7 @@ local util = { module = {}, string = {} }
 
 local io = require("io")
 local obvious = {}
+local naughty = require("naughty")
 local _, vicious = pcall(require, "vicious")
 local unpack = unpack or table.unpack -- v5.1: unpack, v5.2: table.unpack
 local capi = {
@@ -64,6 +65,45 @@ util.patch = {
             end
             cache[wtype] = cache[wtype] + 1
             register(widget, wtype, format, interval, warg)
+        end
+    end,
+    --- Install signal system into naughty for status updates
+    -- It overrides `naughty.resume` and `naughty.suspend`.
+    -- enables naughty
+    naughty = function ()
+        local signals = {}
+        local suspended = false
+        naughty.resume() -- just make sure to not be suspended
+        local resume, suspend = naughty.resume, naughty.suspend
+        naughty.is_suspended = function () return suspended end
+        naughty.resume = function ()
+            suspended = false
+            naughty.emit_signal('resume')
+            naughty.emit_signal('toggle', suspended)
+            return resume()
+        end
+        naughty.suspend = function ()
+            suspended = true
+            naughty.emit_signal('suspend')
+            naughty.emit_signal('toggle', suspended)
+            return suspend()
+        end
+        naughty.emit_signal = function (name, ...)
+            for _, handler in ipairs(signals[name] or {}) do
+                handler(...)
+            end
+        end
+        naughty.connect_signal = function (name, handler)
+            signals[name] = signals[name] or {}
+            table.insert(signals[name], handler)
+        end
+        naughty.remove_signal = function (name, handler)
+            for i, fun in ipairs(signals[name] or {}) do
+                if fun == handler then
+                    table.remove(signals[name], i)
+                    return
+                end
+            end
         end
     end,
     }
