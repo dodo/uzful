@@ -4,6 +4,8 @@
 -- @release v3.4-503-g4972a28
 --------------------------------------------------------------------------------
 
+local naughty = require("naughty")
+
 local switch = {}
 
 local capi = {
@@ -83,6 +85,55 @@ function switch.numbered_tag_names(tags, opts)
         theme = opts.theme,
         menu_text = menu_tags_text,
     }
+end
+
+
+function switch.naughty(opts)
+    opts = opts or {}
+    opts.label = opts.label or {}
+    opts.label.on  = opts.label.on or "disable"
+    opts.label.off = opts.label.off or "enable"
+    opts.label.name = opts.label.name or "notifications"
+    if naughty.is_suspended then -- if patched with uzful.util.patch.naughty
+        if opts.enabled == nil then opts.enabled = naughty.is_suspended() end
+    else
+        if opts.enabled == nil then opts.enabled = true end
+        if opts.enabled then
+            naughty.resume()
+        else
+            naughty.suspend()
+        end
+    end
+    local menu_naughty_text = function ()
+        return (opts.enabled and opts.label.on or opts.label.off)
+            .. " " .. opts.label.name
+    end
+    local entry
+    entry = { menu_naughty_text(), function (m)
+        entry.m = m
+        opts.enabled = not opts.enabled
+        -- force switch value
+        if opts.enabled then
+            naughty.resume()
+        else
+            naughty.suspend()
+        end
+        m.label:set_text(menu_naughty_text())
+        return true -- dont close menu
+    end,
+        theme = opts.theme,
+        menu_text = menu_tags_text,
+    }
+    if naughty.connect_signal then -- if patched with uzful.util.patch.naughty
+        naughty.connect_signal('toggle', function (suspended)
+            opts.enabled = not suspended
+            entry[1] = menu_naughty_text()
+            if entry.m then
+                entry.m.label:set_text(menu_naughty_text())
+            end
+        end)
+    end
+    return entry
 end
 
 
