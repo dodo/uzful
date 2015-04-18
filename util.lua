@@ -312,5 +312,13 @@ function util.lineswrap(s, n)
     return table.concat(lines, "\n")
 end
 
+function util.iscallable(object)
+    if not object then return false end
+    if type(object) == 'function' then return true end
+    local metatable = getmetatable(object)
+    if metatable and metatable.__call then return true end
+    return false
+end
+
 
 return util
