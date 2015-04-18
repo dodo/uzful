@@ -47,29 +47,36 @@ function util.set_properties(widget, properties)
     return widget
 end
 
-function util.hidable(widget)
+function util.hidable(widget, opts)
     local fit = widget.fit
     local draw = widget.draw
+    local show = widget.show
+    local hide = widget.hide
+    opts = opts or {}
     widget.hidden = false
     widget.fit = function (...)
-        if widget.hidden then
-            return -1, -1
+        if widget.hidden or not fit then
+            return 0, 0
         else
             return fit(...)
         end
     end
     widget.draw = function (...)
-        if not widget.hidden then
+        if not widget.hidden and draw then
             return draw(...)
         end
     end
-    widget.show = function ()
+    widget.show = function (...)
         widget.hidden = false
         widget:emit_signal("widget::updated")
+        if opts.show then opts.show(...) end
+        if show then return show(...) end
     end
-    widget.hide = function ()
+    widget.hide = function (...)
         widget.hidden = true
         widget:emit_signal("widget::updated")
+        if opts.hide then opts.hide(...) end
+        if hide then return hide(...) end
     end
     return widget
 end
