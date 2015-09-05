@@ -1,4 +1,4 @@
-  --------------------------------------------------------------------------------
+--------------------------------------------------------------------------------
 -- @author dodo
 -- @copyright 2015 https://github.com/dodo
 -- @release v3.4-503-g4972a28
@@ -9,8 +9,7 @@ local mpris = { menu = {}, mt = {} }
 
 local awful = require("awful")
 local wibox = require("wibox")
-local _, luadbus = pcall(require, "lua-dbus")
-local _, luampris = pcall(require, "lua-mpris")
+local _, luampris = pcall(require, "mpris")
 local beautiful = require("beautiful")
 local uzful = { widget = require("uzful.widget.util") }
 local capi = { timer = (type(timer) == 'table' and timer or require("gears.timer")) }
@@ -351,15 +350,6 @@ function mpris.menu.label(parent, args)
     return ret
 end
 
-
-local function haz(t, value)
-    for _, v in ipairs(t) do
-        if v == value then
-            return true
-        end
-    end
-    return false
-end
 
 local function new(args)
     args = args or {}

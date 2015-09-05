@@ -22,6 +22,7 @@ cleaner awesome/rc.lua
 * [vicious](http://git.sysphere.org/vicious/)
 * [obvious](http://git.mercenariesguild.net/?p=obvious.git) (optional) needed for uzful.util.volume
 * [lua-dbus](https://github.com/dodo/lua-dbus) (optional) needed for uzful.widget.wicd or uzful.widget.battery.phone
+* [lua-mpris](https://github.com/dodo/lua-mpris) (optional) needed for uzful.widget.mpris
 
 ## Usage
 
