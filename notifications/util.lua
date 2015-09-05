@@ -64,11 +64,16 @@ function util.critical(args)
             if val < args.empty and val <= old_val then
                 if notification then naughty.destroy(notification) end
                 if args.silent then return end
+                local text = args.text or "only %d%% remaining."
+                if type(text) == 'string' then
+                    text = string.format(text, val*100)
+                else
+                    text = args.text(val*100)
+                end
                 notification = naughty.notify({
                     preset = naughty.config.presets.critical,
                     title = args.title or "Critical Battery Charge",
-                    text = string.format(args.text or "only %d%% remaining.",
-                                         val*100)})
+                    text = text })
             end
             old_val = val
         end)
