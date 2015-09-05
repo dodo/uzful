@@ -7,7 +7,6 @@
 local repl = { mt = {} }
 
 local awful = require("awful")
-local common = require("awful.widget.common")
 local beautiful = require("beautiful")
 local wibox = require("wibox")
 local util = require("uzful.util")
@@ -157,8 +156,9 @@ function repl.run(cmd)
         mockio.write(table.concat(s, '\t') .. '\n')
         mockio.flush()
     end
+    cmd = cmd:gsub('^%s+', ''):gsub('^=', 'return ')
     local env = setmetatable({ io = mockio, print = mockprint }, { __index = _G })
-    local exe, err = loadstring(cmd:gsub('^%s*=', 'return '), '[awesome repl]')
+    local exe, err = loadstring(cmd, '[awesome repl]')
     if err then
         repl.write(err .. '\n')
     else
@@ -167,7 +167,7 @@ function repl.run(cmd)
         if not ok then
             err = val
             repl.write(err .. '\n')
-        elseif val then
+        elseif cmd:match('^return') then
             repl.write(tostring(val) .. '\n')
         end
     end
