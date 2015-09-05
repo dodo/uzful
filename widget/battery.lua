@@ -6,21 +6,10 @@
 
 local battery = { mt = {} }
 
--- constants
-local kdeconnect = {}
-battery.kdeconnect = kdeconnect
-kdeconnect.BUS = 'session'
-kdeconnect.PATH = '/modules/kdeconnect'
-kdeconnect.DESTINATION = 'org.kde.kdeconnect'
-kdeconnect.INTERFACE = {
-    device = 'org.kde.kdeconnect.device',
-    battery = 'org.kde.kdeconnect.device.battery',
-}
-
+local wibox = require("wibox")
 local _, vicious = pcall(require, "vicious")
-local _, luadbus = pcall(require, "lua-dbus")
 local beautiful = require("beautiful")
-local capi = { dbus = dbus }
+local kdeconnect = require("uzful.ext.kdeconnect")
 local uzful = {
     util = require("uzful.util"),
     widget = {
@@ -31,8 +20,19 @@ local uzful = {
     notifications = require("uzful.notifications.util"),
 }
 
+function battery.set_text(bat, percentage)
+    if bat.text then
+        bat.text:set_text(string.format("%s%s%s%d%%",
+            bat.name or '',
+            bat.name and '  ' or '',
+            bat.charging and '+' or '−',
+            percentage * 100
+        ))
+    end
+end
+
 function battery.set_value(bat, percentage)
-    if bat.text then bat.text:set_text((percentage * 100) .. "%") end
+    battery.set_text(bat, percentage)
     bat.widget.progress:set_value(percentage)
     bat.critical:set_value(percentage)
     bat.ticks:set_value(percentage)
@@ -54,6 +54,7 @@ function battery.phone(args)
     local ret = {
         id = args.id,
         charging = false,
+        set_text = battery.set_text,
         set_value = battery.set_value,
     }
     -- Battery Text
@@ -71,18 +72,11 @@ function battery.phone(args)
         vertical = true, background_color = args.normal,
         border_color = nil, color = args.color })
     -- test if kdeconnect is on
-    luadbus.call('forceOnNetworkChange', function (err)
+    kdeconnect.call('device', 'forceOnNetworkChange', function (err)
         if err then
             ret.widget.hide()
         end
-    end, {
-        destination = kdeconnect.DESTINATION,
-        interface = kdeconnect.INTERFACE.device,
-        path = kdeconnect.PATH,
-        bus = kdeconnect.BUS,
-    })
-    -- TODO show info if charging sign in text! or not
-    -- TODO filter for device id
+    end)
     ret.ticks = uzful.util.threshold(args.threshold.full or 0.9,
         function () uzful.widget.set_properties(ret.widget.progress, { ticks = false }) end,
         function () uzful.widget.set_properties(ret.widget.progress, { ticks = true  }) end)
@@ -102,74 +96,54 @@ function battery.phone(args)
             if ret.charging then
                 return args.charge
             end
-        end })
+        end,
+        text = function (percentage)
+            return string.format("%s%sonly %d%% remaining.",
+                ret.name or "", ret.name and " has " or "", percentage)
+        end,
+    })
     local function change_state(state)
         ret.charging = (state == true)
         ret.widget.progress:set_background_color(ret.charging and args.charge or args.normal)
+        ret:set_text(ret.ticks:get_value())
     end
-    -- which path is thid listening on?
-    luadbus.on('stateChanged', change_state, {
-        bus = kdeconnect.BUS, interface = kdeconnect.INTERFACE.battery })
-    luadbus.on('chargeChanged', function (charge)
+    local device = kdeconnect.device(args.id)
+    device.on('battery', 'stateChanged', change_state)
+    device.on('battery', 'chargeChanged', function (charge)
         ret:set_value((charge or 100) / 100)
         ret.widget.show()
-    end, { bus = kdeconnect.BUS, interface = kdeconnect.INTERFACE.battery })
+    end)
 
-    if args.id then
+    if device.id then
         -- get initial state
-        luadbus.call('charge', function (charge)
+        device.call('battery', 'charge', function (charge)
             ret:set_value((tonumber(charge) or 100) / 100)
-        end, {
-            destination = kdeconnect.DESTINATION,
-            interface = kdeconnect.INTERFACE.battery,
-            path = kdeconnect.PATH .. '/devices/' .. args.id,
-            bus = kdeconnect.BUS,
-        })
-        luadbus.call('isCharging', change_state, {
-            destination = kdeconnect.DESTINATION,
-            interface = kdeconnect.INTERFACE.battery,
-            path = kdeconnect.PATH .. '/devices/' .. args.id,
-            bus = kdeconnect.BUS,
-        })
+        end)
+        device.call('battery', 'isCharging', change_state)
         -- update reachability
         ret.update = function ()
-            luadbus.call('isPaired', function (paired)
+            kdeconnect.property.get('device', 'name', function (name)
+                ret.name = name
+                ret:set_text(ret.ticks:get_value())
+            end, device.path)
+            device.call('device', 'isPaired', function (paired)
                 if paired ~= true then
                     ret.widget.hide()
                     return
                 end
-                luadbus.call('isReachable', function (reachable)
+                device.call('device', 'isReachable', function (reachable)
                     if reachable == true then
                         ret.widget.show()
                     else -- false or error
                         ret.widget.hide()
                     end
-                end, {
-                    destination = kdeconnect.DESTINATION,
-                    interface = kdeconnect.INTERFACE.device,
-                    path = kdeconnect.PATH .. '/devices/' .. args.id,
-                    bus = kdeconnect.BUS,
-                })
-            end, {
-                destination = kdeconnect.DESTINATION,
-                interface = kdeconnect.INTERFACE.device,
-                path = kdeconnect.PATH .. '/devices/' .. args.id,
-                bus = kdeconnect.BUS,
-            })
+                end)
+            end)
         end
         ret.update()
-        luadbus.on('reachableStatusChanged', ret.update, {
-            interface = kdeconnect.INTERFACE.device,
-            bus = kdeconnect.BUS,
-        })
-        luadbus.on('pairingSuccessful', ret.update, {
-            interface = kdeconnect.INTERFACE.device,
-            bus = kdeconnect.BUS,
-        })
-        luadbus.on('unpaired', ret.update, {
-            interface = kdeconnect.INTERFACE.device,
-            bus = kdeconnect.BUS,
-        })
+        device.on('device', 'reachableStatusChanged', ret.update)
+        device.on('device', 'pairingSuccessful', ret.update)
+        device.on('device', 'unpaired', ret.update)
     else
         ret.update = function () end -- noop
     end
