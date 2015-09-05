@@ -21,6 +21,38 @@ function notifications.notify(args)
 end
 
 
+function mt:start()
+    self.device.on('notifications', 'notificationPosted', function (id)
+        if self.visible and not self.cache[id] then
+            self:notify(id)
+        end
+    end)
+    self.device.on('notifications', 'notificationRemoved', function (id)
+        self:destroy(id)
+    end)
+    return self
+end
+
+function mt:notify(id)
+    kdeconnect.property.get('notification', 'ticker', function (ticker)
+        if ticker and ticker ~= "" then
+            if self.cache[id] then
+                naughty.replace_text(self.cache[id], --[[title=]]nil, ticker)
+            else
+                notif = notifications.notify({text = ticker})
+                self.cache[id] = notif
+            end
+        end
+    end, self.device.path .. '/notifications/' .. id)
+end
+
+function mt:destroy(id)
+    if self.cache[id] then
+        naughty.destroy(self.cache[id])
+        self.cache[id] = nil
+    end
+end
+
 function mt:show()
     self.visible = true
     local device = kdeconnect.device(self.id)
@@ -31,12 +63,7 @@ function mt:show()
             return
         end
         for _, id in ipairs(ids) do
-            kdeconnect.property.get('notification', 'ticker', function (ticker)
-                if ticker and ticker ~= "" then
-                    notif = notifications.notify({text = ticker})
-                    self.cache[notif.id] = notif
-                end
-            end, self.device.path .. '/notifications/' .. id)
+            self:notify(id)
         end
     end)
 end
@@ -46,6 +73,7 @@ function mt:hide()
     for _, notification in pairs(self.cache or {}) do
         naughty.destroy(notification)
     end
+    self.cache = {}
 end
 
 function mt:toggle()
@@ -60,7 +88,7 @@ end
 local function new(id)
     local ret = {cache = {}, visible = false}
     ret.device = kdeconnect.device(id)
-    return setmetatable(ret, mt)
+    return setmetatable(ret, mt):start()
 end
 
 
