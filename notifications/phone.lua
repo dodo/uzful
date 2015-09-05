@@ -28,9 +28,16 @@ function mt:start()
         end
     end)
     self.device.on('notifications', 'notificationRemoved', function (id)
-        self:destroy(id)
+        self:destroy(id, 'dismissedByCommand')
     end)
     return self
+end
+
+function mt:dismiss(id)
+    if kdeconnect ~= 'bugfree' then return end -- dismissing crashes kdeconnect
+    kdeconnect.call('notification', 'dismiss', function ()
+        print "notification dismissed!"
+    end, self.device.path .. '/notifications/' .. id)
 end
 
 function mt:notify(id)
@@ -39,14 +46,17 @@ function mt:notify(id)
             if self.cache[id] then
                 naughty.replace_text(self.cache[id], --[[title=]]nil, ticker)
             else
-                notif = notifications.notify({text = ticker})
+                notif = notifications.notify({
+                    run = function () self:dismiss(id) end,
+                    text = ticker,
+                })
                 self.cache[id] = notif
             end
         end
     end, self.device.path .. '/notifications/' .. id)
 end
 
-function mt:destroy(id)
+function mt:destroy(id, reason)
     if self.cache[id] then
         naughty.destroy(self.cache[id])
         self.cache[id] = nil
