@@ -11,6 +11,8 @@ kdeconnect.DESTINATION = 'org.kde.kdeconnect'
 kdeconnect.INTERFACE = {
     device = 'org.kde.kdeconnect.device',
     battery = 'org.kde.kdeconnect.device.battery',
+    notifications = 'org.kde.kdeconnect.device.notifications',
+    notification  = 'org.kde.kdeconnect.device.notifications.notification',
 }
 
 function kdeconnect.on(name, event, callback, path)
