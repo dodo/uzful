@@ -100,7 +100,7 @@ function util.infobox(args)
         local area = capi.screen[screen].workarea
 
         if size and type(size) == "function" then
-            box.width, box.height = size()
+            box.width, box.height = size(args)
         end
 
         if position == "top" then
