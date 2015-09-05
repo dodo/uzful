@@ -49,6 +49,13 @@ util.table = {
         end
         return t
     end,
+    map = function (t, f)
+        local r = {}
+        for i, v in ipairs(t) do
+            table.insert(r, f(v))
+        end
+        return r
+    end,
 }
 
 util.patch = {
