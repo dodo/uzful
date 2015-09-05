@@ -38,13 +38,16 @@ function mt:dismiss(id)
     if kdeconnect ~= 'bugfree' then return end -- dismissing crashes kdeconnect
     kdeconnect.call('notification', 'dismiss', function ()
         print "notification dismissed!"
+        self:destroy(id)
     end, self.device.path .. '/notifications/' .. id)
 end
 
 function mt:notify(id)
+    if not id then return end
     kdeconnect.property.get('notification', 'ticker', function (ticker)
         if self.cache['no'] then self:destroy('no') end
         if ticker and ticker ~= "" then
+            self.visible = true
             if self.cache[id] then
                 naughty.replace_text(self.cache[id], --[[title=]]nil, ticker)
             else
@@ -66,17 +69,20 @@ function mt:destroy(id, reason)
             self:show_empty()
         end
     end
+    if util.table.empty(self.cache) then self.visible = false end
 end
 
 function mt:show_empty()
     if not self.cache['no'] then
-        local notif = notifications.notify({text = "no notifications"})
-        self.cache['no'] = notif
+        self.visible = true
+        self.cache['no'] = notifications.notify({
+            run = function () self:destroy('no') end,
+            text = "no notifications",
+        })
     end
 end
 
 function mt:show()
-    self.visible = true
     local device = kdeconnect.device(self.id)
     self.device.call('notifications', 'activeNotifications', function (ids)
         if type(ids) ~= 'table' or #ids == 0 then
