@@ -56,6 +56,12 @@ util.table = {
         end
         return r
     end,
+    empty = function (t)
+        for k,v in pairs(t) do
+            return false
+        end
+        return true
+    end,
 }
 
 util.patch = {

@@ -7,6 +7,7 @@ local notifications = { mt = {} }
 local mt = {}
 
 local naughty = require('naughty')
+local util = require('uzful.util')
 local kdeconnect = require("uzful.ext.kdeconnect")
 
 notifications.preset = {
@@ -42,11 +43,12 @@ end
 
 function mt:notify(id)
     kdeconnect.property.get('notification', 'ticker', function (ticker)
+        if self.cache['no'] then self:destroy('no') end
         if ticker and ticker ~= "" then
             if self.cache[id] then
                 naughty.replace_text(self.cache[id], --[[title=]]nil, ticker)
             else
-                notif = notifications.notify({
+                local notif = notifications.notify({
                     run = function () self:dismiss(id) end,
                     text = ticker,
                 })
@@ -60,6 +62,16 @@ function mt:destroy(id, reason)
     if self.cache[id] then
         naughty.destroy(self.cache[id])
         self.cache[id] = nil
+        if id ~= 'no' and util.table.empty(self.cache) then
+            self:show_empty()
+        end
+    end
+end
+
+function mt:show_empty()
+    if not self.cache['no'] then
+        local notif = notifications.notify({text = "no notifications"})
+        self.cache['no'] = notif
     end
 end
 
@@ -67,10 +79,8 @@ function mt:show()
     self.visible = true
     local device = kdeconnect.device(self.id)
     self.device.call('notifications', 'activeNotifications', function (ids)
-        if #ids == 0 then
-            naughty.notify({text = "no notifications"})
-            self.visible = false
-            return
+        if type(ids) ~= 'table' or #ids == 0 then
+            return self:show_empty()
         end
         for _, id in ipairs(ids) do
             self:notify(id)
