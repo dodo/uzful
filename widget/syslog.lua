@@ -62,7 +62,9 @@ local function new(args)
         height = sllines * beautiful.get_font_height(theme.font),
         position = args.position, align = args.align or "left",
         visible = args.visible, ontop = args.ontop,
-        widget = syslogtext })
+        widget = syslogtext,
+        bg = args.bg or "#00000000",
+        fg = args.fg })
     -- store reference somewhere
     data[box] = { log = log, text = syslogtext }
     return box
