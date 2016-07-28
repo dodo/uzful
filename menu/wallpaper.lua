@@ -12,6 +12,11 @@ local wibox = require("wibox")
 local awful = require("awful")
 local gears = require("gears")
 local cairo = require("lgi").cairo
+local posix = require('posix')
+local naughty = require('naughty')
+local awful = require("awful")
+local util = require("uzful.util")
+
 local capi = {
     screen = screen,
     mouse = mouse,
@@ -40,27 +45,80 @@ local table_update = function (t, set)
     return t
 end
 
-function wallpaper.exec(item, menu)
-    local sel = menu.parent.items[menu.parent.sel]
+function wallpaper.select_wallpaper(item)
+    -- returns a string for the image
+    -- if it's a random entry, select one file of the directory
+    if item.random then
+        if posix.stat(item[1], "type") ~= 'directory' then
+            naughty.notify { title = "Error loading wallpaper: " .. item[1], text = 'random entries need to be a directory', timeout = 0 }
+        else
+            local all_files = util.scandir(item[1])
+
+            if #all_files == 0 then
+                return nil
+            else
+                while #all_files > 0 do
+                    local n = math.random(1, #all_files + 1)
+                    local target = item[1] .. '/' .. all_files[n]
+                    -- if the file is not readable or does not exist (broken symlink), try next file
+                    if awful.util.file_readable(target) then
+                        return target
+                    else
+                        table.remove(all_files, n)
+                    end
+                end
+            end
+        end
+    else
+        if not awful.util.file_readable(item[1]) then
+            naughty.notify { title = "Error loading wallpaper: " .. item[1], text = 'File does not exist or not readable', timeout = 0 }
+        else
+            return item[1]
+        end
+    end
+end
+
+function wallpaper.set_wallpaper(item, screen)
     local fun = "maximized"
+    if not target then
+        target = wallpaper.select_wallpaper(item)
+    end
+    if not target then
+      -- select wallpaper gives appropriate feedback
+      return
+    end
     for key, name in pairs(awsetbg_params) do
-        if sel._item[key] then
+        if item[key] then
             fun = name
             break
         end
     end
-    if menu.sel == 1 then
-        gears.wallpaper[fun](sel._item[1], capi.mouse.screen)
+    if screen ~= nil then
+        gears.wallpaper[fun](target, screen)
     else
         for s= 1, capi.screen.count() do
-            gears.wallpaper[fun](sel._item[1], s)
+            gears.wallpaper[fun](target, s)
         end
     end
+end
+
+function wallpaper.exec(item, menu)
+    local sel = menu.parent.items[menu.parent.sel]
+    if menu.sel == 1 then
+        wallpaper.set_wallpaper(sel._item, capi.mouse.screen)
+    else
+        wallpaper.set_wallpaper(sel._item)
+    end
+end
+
+local function short_path(name)
+    return string.gsub(name, ".*/(%w+)", "%1")
 end
 
 function wallpaper.menu(items)
     local ret = { layout = wibox.layout.fixed.vertical }
     local sub = ret
+
     for i, item in ipairs(items) do
         local e = {"", -- name
             { -- submenu
@@ -68,10 +126,10 @@ function wallpaper.menu(items)
                 {"all screens", wallpaper.exec, new = awful.menu.entry},
             }, new = wallpaper.entry } -- tell this is different
         if type(item) == 'table' then
-            e[1] = item[1]
+            e[1] = short_path(item[1])
             e._item = item
         else
-            e[1] = item -- assume this is a string
+            e[1] = short_path(item) -- assume this is a string
             e._item = {item}
         end
         if #sub == 8 then

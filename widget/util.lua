@@ -90,6 +90,9 @@ end
 function util.infobox(args)
     local box = util.wibox(uzful.util.table.update({ type = "notification",
         visible = false, ontop = true }, args))
+
+    if args.bg then box:set_bg(args.bg) end
+    if args.fg then box:set_fg(args.fg) end
     local ret = {}
     local size = args.size
     local align = args.align or "left"
