@@ -15,7 +15,7 @@ function getinfo.interfaces()
 	local out = assert(f:read("*a"))
 	f:close()
 	local ret = {}
-	for w in string.gfind(out, "%w+") do
+	for w in string.gmatch(out, "%w+") do
 	  	f,emsg,enum = io.open("/sys/class/net/".. w .. "/device" ,"r")
 		if (enum ~= 2 ) then
 			 table.insert(ret, w)
