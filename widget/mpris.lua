@@ -369,6 +369,8 @@ local function new(args)
     ret.client  = luampris.Client:new()
     menu.launcher = ret
 
+    ret:buttons(awful.util.table.join(ret:buttons(), awful.button({}, 2, nil, function () ret.playpause() end)))
+
     ret.item = function (name, player)
         ret.show()
         local icon = args.theme.none
