@@ -320,5 +320,28 @@ function util.iscallable(object)
     return false
 end
 
+function util.scandir(directory)
+    local lfs_exists, lfs = pcall(require, 'lfs')
+
+    local t, popen = {}, io.popen
+    if not lfs_exists then
+        local pfile = popen('ls -a "'..directory..'"')
+        for filename in pfile:lines() do
+            if file ~= "." and file ~= ".." then
+                table.insert(t, filename)
+            end
+        end
+        pfile:close()
+    else
+        local lfs = require('lfs')
+        for file in lfs.dir(path) do
+            if file ~= "." and file ~= ".." then
+                t[#all_files + 1] = file
+            end
+        end
+    end
+    return t
+end
+
 
 return util
