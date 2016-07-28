@@ -147,6 +147,7 @@ function battery.phone(args)
     else
         ret.update = function () end -- noop
     end
+    ret.device = device
     return ret
 end
 
