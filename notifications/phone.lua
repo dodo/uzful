@@ -35,7 +35,6 @@ function mt:start()
 end
 
 function mt:dismiss(id)
-    if kdeconnect ~= 'bugfree' then return end -- dismissing crashes kdeconnect
     kdeconnect.call('notification', 'dismiss', function ()
         print "notification dismissed!"
         self:destroy(id)
