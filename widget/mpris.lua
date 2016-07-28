@@ -14,6 +14,11 @@ local beautiful = require("beautiful")
 local uzful = { widget = require("uzful.widget.util") }
 local capi = { timer = (type(timer) == 'table' and timer or require("gears.timer")) }
 
+local function last(t,n)
+  if not t then return end
+  local i = #t - (n or 0)
+  return i, t[i]
+end
 
 function mpris.menu.new(args)
     local menu = awful.menu({
@@ -394,8 +399,8 @@ local function new(args)
         ret.client:onPlayer(function (player)
             if player.closed then
                 if ret.last_player == player then
-                    local _, pl = next(ret.client.players or {})
-                    ret.select(pl and pl.id)
+                    local _, sm = last(ret.menu.child, 1)
+                    ret.select(sm and sm.player and sm.player.id)
                 end
                 if player.menu then
                     ret.menu:delete(player.menu)
@@ -415,8 +420,8 @@ local function new(args)
             ret.client:updatePlayers(function (added, removed, unchanged)
                 for _, player in ipairs(removed) do
                     if ret.last_player == player then
-                        local _, pl = next(ret.client.players or {})
-                        ret.select(pl and pl.id)
+                        local _, sm = last(ret.menu.child, 1)
+                        ret.select(sm and sm.player and sm.player.id)
                     end
                     if player.menu then
                         ret.menu:delete(player.menu)
