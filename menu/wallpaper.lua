@@ -48,7 +48,7 @@ end
 function wallpaper.select_wallpaper(item)
     -- returns a string for the image
     -- if it's a random entry, select one file of the directory
-    if item.random then
+    if item and type(item) == 'table' and item.random then
         if posix.stat(item[1], "type") ~= 'directory' then
             naughty.notify { title = "Error loading wallpaper: " .. item[1], text = 'random entries need to be a directory', timeout = 0 }
         else
@@ -126,10 +126,10 @@ function wallpaper.menu(items)
                 {"all screens", wallpaper.exec, new = awful.menu.entry},
             }, new = wallpaper.entry } -- tell this is different
         if type(item) == 'table' then
-            e[1] = short_path(item[1])
+            e[1] = item[1]
             e._item = item
         else
-            e[1] = short_path(item) -- assume this is a string
+            e[1] = item
             e._item = {item}
         end
         if #sub == 8 then
