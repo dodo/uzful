@@ -196,7 +196,7 @@ function titlebar.visiblity(bar)
                       c.minimized  or
                       c.fullscreen )
             and awful.layout.get(c.screen) == awful.layout.suit.floating
-            or  awful.client.floating.get(c) )
+            or  c.floating )
     end
     c.skip_taskbar = w.visible
 end
@@ -254,20 +254,18 @@ local function new(c, args)
     ret._dir = dir
     ret._mirrored = mirrored
 
-    ret.rotation = wibox.layout.rotate()
+    ret.rotation = wibox.container.rotate()
     box.screen = c.screen
     box.ontop = true
     box:set_widget(ret.rotation)
 
+    ret.setup = function (_,...) ret.rotation:setup(...) end
     ret.rotation:buttons(awful.button({ }, 1, function ()
         capi.client.focus = c
         c:raise()
     end))
 
     local signals = {}
-    local set_geometry = function () ret:update() end
-    signals["property::width"]    = set_geometry
-    signals["property::height"]   = set_geometry
     local toggle_focus = function () ret:color(args) end
     signals["unfocus"] = toggle_focus
     signals["focus"]   = toggle_focus
@@ -277,24 +275,18 @@ local function new(c, args)
     signals["property::hidden"]             = set_visibility
     signals["property::minimized"]          = set_visibility
     signals["property::fullscreen"]         = set_visibility
---     signals["property::sticky"]   = function ()
---         controls.sticky.update_image()
---         ret:visiblity()
---     end
-    signals["property::x"] = function ()
-        local geometry = c:geometry()
-        local d = ret:direction(geometry)
-        if d ~= nil then
-            box.x = coord("x", d, geometry, ret.size)
-        end
+    signals["property::sticky"]             = set_visibility
+    signals["property::size"] = function () ret:update() end
+    signals["property::surface"] = function ()
         ret:visiblity()
         ret.widget.draw()
     end
-    signals["property::y"] = function ()
+    signals["property::position"] = function ()
         local geometry = c:geometry()
         local d = ret:direction(geometry)
         if d ~= nil then
-            box.y = coord("y", d, geometry, ret.size)
+            ret.widget.x = coord("x", d, geometry, ret.size)
+            ret.widget.y = coord("y", d, geometry, ret.size)
         end
         ret:visiblity()
         ret.widget.draw()
@@ -303,8 +295,8 @@ local function new(c, args)
         for signal, callback in pairs(signals) do
             c:disconnect_signal(signal, callback)
         end
-        box.visible = false
-        box:set_widget(nil)
+        ret.widget.visible = false
+        ret.widget:set_widget(nil)
         awful.client.property.set(c, "titlebar", nil)
     end
 

@@ -119,9 +119,6 @@ local function update_window(cmd, client, data)
             end
         end
     end
-    if cmd == 'set' and data.floating_geometry ~= nil then
-        awful.client.floating.set(client, client.floating)
-    end
     return data
 end
 
