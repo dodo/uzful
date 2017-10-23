@@ -69,47 +69,47 @@ function repl.show(scr, args)
         instance.widget:set_text(instance.text)
         instance.wibox:geometry({x = geometry.x or scrgeom.x,
                                 y = geometry.y or scrgeom.y,
-                                height = _height,
+                                height = _height + 10,
                                 width = geometry.width or scrgeom.width})
     end
     instance.update = update
     update()
 
     local abort = true
-    awful.prompt.run(args, instance.prompt.widget,
-        function(s) -- exe_callback
-            if s == 8 or s == 'quit' or s == 'exit' or s == ':q' then
-                abort = true
-            elseif s == 'clear' or s == 'reset' then
-                abort = false
-                instance.text = ""
-                instance.lines = 0
-                instance.prepend = ''
-            else
-                abort = false
-                repl.write(args.prompt .. s .. '\n')
-                repl.run(s)
-            end
-        end,
-        function (text, cur_pos, ncomp) -- completion_callback
-            local keywords = {}
-            for k,_ in pairs(_G) do
-                table.insert(keywords, k)
-            end
-            return awful.completion.generic(text, cur_pos, ncomp, keywords)
-        end,
-        awful.util.getdir("cache") .. "/history_repl",
-        nil, function () -- done_callback
-            if abort then
-                repl.enabled = false
-                repl.hide()
-            else
-                args.reset = true
-                repl.show(src, args)
-                args.reset = false
-            end
+    args.textbox = instance.prompt.widget
+    args.history_path = awful.util.getdir("cache") .. "/history_repl"
+    function args.exe_callback(s)
+        if s == 8 or s == 'quit' or s == 'exit' or s == ':q' then
+            abort = true
+        elseif s == 'clear' or s == 'reset' then
+            abort = false
+            instance.text = ""
+            instance.lines = 0
+            instance.prepend = ''
+        else
+            abort = false
+            repl.write(args.prompt .. s .. '\n')
+            repl.run(s)
         end
-    )
+    end
+    function args.completion_callback(text, cur_pos, ncomp)
+        local keywords = {}
+        for k,_ in pairs(_G) do
+            table.insert(keywords, k)
+        end
+        return awful.completion.generic(text, cur_pos, ncomp, keywords)
+    end
+    function args.done_callback()
+        if abort then
+            repl.enabled = false
+            repl.hide()
+        else
+            args.reset = true
+            repl.show(src, args)
+            args.reset = false
+        end
+    end
+    awful.prompt.run(args)
     instance.wibox.visible = true
     repl.enabled = true
 end
@@ -158,11 +158,10 @@ function repl.run(cmd)
     end
     cmd = cmd:gsub('^%s+', ''):gsub('^=', 'return ')
     local env = setmetatable({ io = mockio, print = mockprint }, { __index = _G })
-    local exe, err = loadstring(cmd, '[awesome repl]')
+    local exe, err = load(cmd, '[awesome repl]', 't', env)
     if err then
         repl.write(err .. '\n')
     else
-        setfenv(exe, env)
         local ok, val = pcall(exe)
         if not ok then
             err = val

@@ -6,7 +6,6 @@
 
 local graph = { mt = {} }
 
-local awful = require("awful")
 local wibox = require("wibox")
 local _, vicious = pcall(require, "vicious")
 local _, helpers = pcall(require, "vicious.helpers")
@@ -38,7 +37,7 @@ local default_cpu_colors = { fg = "#FFFFFF", bg = "#000000" }
 -- @param args.bgcolor <i>(optional) </i> default value of `args.small.bgcolor` and `args.big.bgcolor`
 -- @return a table  with this properties: small <i>(when `args.small` given)</i> (with properties: widget, width, height), big <i>(wher `args.big` given)</i> (with properties: layout, widgets, width, height), load <i>(when `args.load` given)</i>
 local function new(args)
-    local ret = {}
+    local ret = {screen = args.screen or 1}
     for _, size in ipairs({"small", "big"}) do
         if args[size] then
             for ground, col in pairs(default_cpu_colors) do
@@ -51,7 +50,7 @@ local function new(args)
 
     local small = nil
     if args.small then
-        small = awful.widget.graph(args.small)
+        small = wibox.widget.graph(args.small)
         widget.set_properties(small, {
             border_color = nil,
             color = args.small.fgcolor,
@@ -59,10 +58,10 @@ local function new(args)
         vicious.register(small, vicious.widgets.cpu, "$1", args.small.interval)
         ret.small = {
             widget = small,
-            layout = wibox.layout.mirror(),
+            layout = wibox.container.mirror(),
             height = args.small.height,
             width = args.small.width }
-        ret.small.layout:set_reflection({ vertical = (args.direction == "right")})
+        ret.small.layout:set_reflection({ horizontal = (args.direction == "right")})
         ret.small.layout:set_widget(ret.small.widget)
     end
 
@@ -75,14 +74,14 @@ local function new(args)
             vicious.register(ret.load, vicious.widgets.uptime,
                 helpers.format(args.load.text or "$1 $2 $3",
                     {"$4", "$5", "$6"}), args.load.interval)
-            local _, h = ret.load:fit(-1, -1)
+            local _, h = ret.load:get_preferred_size(ret.screen)
             height = height + h
         end
 
         local big = {}
         local cpucounter = getinfo.cpu_count()
         for i=1,cpucounter do
-            table.insert(big, awful.widget.graph(args.big))
+            table.insert(big, wibox.widget.graph(args.big))
             widget.set_properties(big[i], {
                 border_color = nil,
                 color = args.big.fgcolor,
@@ -93,20 +92,21 @@ local function new(args)
         height = height + cpucounter * args.big.height
         big.layout = wibox.layout.fixed.vertical
         ret.big = {
-            layout = layout.build({
-                ret.load,
-                {
-                    widget = big,
-                    reflection = {
-                        vertical = (args.direction == "right"),
-                    },
-                    layout = wibox.layout.mirror,
-                },
-                layout = wibox.layout.fixed.vertical,
-            }),
+            layout = wibox.layout.fixed.vertical(),
             widgets = big,
             height = height,
             width = args.big.width}
+        ret.big.layout:setup({
+                ret.load,
+                {
+                    big,
+                    reflection = {
+                        horizontal = (args.direction == "right"),
+                    },
+                    layout = wibox.container.mirror,
+                },
+                layout = wibox.layout.fixed.vertical,
+            })
     end
 
     return ret

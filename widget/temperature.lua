@@ -6,6 +6,7 @@
 
 local temperature = { mt = {} }
 
+local wibox = require("wibox")
 local _, vicious = pcall(require, "vicious")
 local beautiful = require("beautiful")
 local capi = { dbus = dbus }
@@ -32,15 +33,15 @@ local function new(args)
         ret.notifications = uzful.util.threshold(args.threshold or 0.8,
             function (val)
                 ret.text:set_markup(string.format(
-                    args.label.critical, args.critical, val*100))
+                    args.label.critical, args.critical, math.floor(val*100)))
             end,
             function (val)
                 ret.text:set_markup(string.format(
-                    args.label.normal, args.normal, val*100))
+                    args.label.normal, args.normal, math.floor(val*100)))
             end)
     end
     if args.graph ~= false then
-        ret.graph = awful.widget.graph({
+        ret.graph = wibox.widget.graph({
             width = args.width, height = args.height })
         uzful.widget.set_properties(ret.graph, {
             border_color = nil,

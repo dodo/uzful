@@ -6,6 +6,7 @@ local io = require('io')
 local awful = require('awful')
 local wibox = require('wibox')
 local beautiful = require("beautiful")
+local uzful = {util = require('uzful.util')}
 local capi = {
     awesome = awesome,
     screen = screen,
@@ -42,12 +43,14 @@ local function lualine(value, key, indent)
     if type(value) == "table" then
         res = res .. table2string(value, indent)
     elseif type(value) == "string" then
-		local s, _ = string.gsub(value, "\n", "")
+        local s, _ = string.gsub(value, "\n", "")
         res = res .. '"' .. s .. '"'
     elseif type(value) == "boolean" then
         res = res .. (value and "true" or "false")
+    elseif type(value) == "number" then
+        res = res .. tostring(value)
     else
-        res = res .. value
+        res = res .. "nil"
     end
     res = res .. ",\n"
     return res
@@ -124,10 +127,10 @@ end
 
 
 local function get_command(pid)
-    if pid == 0 then
+    if not pid or pid == 0 then
         return ""
     else
-        return awful.util.pread("ps --no-headers o args " .. pid)
+        return uzful.util.pread("ps --no-headers o args " .. pid)
     end
 end
 
@@ -140,6 +143,7 @@ local function load(filename)
     if f ~= nil then
         f:close()
         data = require(filename)
+        if type(data) ~= 'table' then data = {} end
     end
 
     return data
@@ -149,7 +153,7 @@ local function get_tag_numbers(tags)
     local ret = {}
     -- get tags numbers
     for _, tag in ipairs(tags) do
-        table.insert(ret, awful.tag.getidx(tag))
+        table.insert(ret, tag.index)
     end
     return ret
 end
@@ -161,8 +165,8 @@ function restore.disconnect(filename)
     for s = 1, capi.screen.count() do
         local screendata = data[s] or {}
         data[s] = screendata
-        screendata.tags = get_tag_numbers(awful.tag.selectedlist(s))
-        for t,tag in ipairs(awful.tag.gettags(s)) do
+        screendata.tags = get_tag_numbers(capi.screen[s].selected_tags)
+        for t,tag in ipairs(capi.screen[s].tags) do
             screendata[t] = update_tag('get', tag, screendata[t])
         end
     end
@@ -193,7 +197,7 @@ local function create_control(text, callback)
     local ret = wibox.widget.textbox()
     ret:set_align("center")
     ret:set_text(text)
-    local bg  = wibox.widget.background()
+    local bg  = wibox.container.background()
     bg:set_widget(ret)
     bg:set_fg(theme.fg_normal)
     bg:set_bg(theme.bg_normal)
@@ -210,6 +214,7 @@ local function create_control(text, callback)
 end
 
 local function format_window_info(win)
+    if not win.pid then return win.command end
     return ""..win.pid.. string.rep(" ",7-string.len(""..win.pid))..win.command
 end
 
@@ -270,6 +275,7 @@ end
 local function create_window(data, win)
     local count = capi.screen.count()
     win = win or {}
+    win.screen = win.screen or 1
     if win.screen > count then
         win.screen = count
     end
@@ -286,7 +292,7 @@ end
 local function get_tags(tags, screen)
     -- get all tag userdatas
     local ret = {}
-    local capitags = awful.tag.gettags(screen or 1)
+    local capitags = capi.screen[screen or 1].tags
     for _, t in ipairs(tags or {}) do
         table.insert(ret, capitags[t])
     end
@@ -316,10 +322,10 @@ function restore.connect(opts)
             screendata = {}
             data[s] = screendata
         end
-        for t,tag in ipairs(awful.tag.gettags(s)) do
+        for t,tag in ipairs(capi.screen[s].tags) do
             screendata[t] = update_tag('set', tag, screendata[t])
         end
-        if screendata.tags and #screendata.tags then
+        if screendata.tags and #screendata.tags > 0 then
             awful.tag.viewmore(get_tags(screendata.tags, s), s)
         end
         if opts.info ~= false then

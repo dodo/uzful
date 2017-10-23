@@ -1,13 +1,14 @@
 local awful = { tag = require('awful.tag') }
 local capi = {
     client = client,
+    screen = screen,
 }
 
 local client = {}
 client.focus = {}
 
 function client.focus.byabsidx(i, s)
-    local tags = awful.tag.selectedlist(s)
+    local tags = capi.screen[s].selected_tags or {}
     local clients
     for ti, t in ipairs(tags) do
         clients = t:clients()

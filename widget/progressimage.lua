@@ -6,7 +6,6 @@
 
 local progressimage = { mt = {} }
 
-local awful = require("awful")
 local wibox = require("wibox")
 
 
@@ -18,11 +17,11 @@ local wibox = require("wibox")
 -- @param args.width progressbar height
 -- @param args.draw_image_first <i>(default: true)</i> specify wether image or progress will be drawen first
 -- @param args.image <i>(optional) </i> image to be displayed
--- @return `wibox.widget.imagebox` with property progress with is a `awful.widget.progressbar`, draw_image_first, draw_progress_first, swap_first
+-- @return `wibox.widget.imagebox` with property progress with is a `wibox.widget.progressbar`, draw_image_first, draw_progress_first, swap_first
 local function new(args)
     local img_first = args.draw_image_first == nil or args.draw_image_first
     local ret = wibox.widget.imagebox()
-    ret.progress = awful.widget.progressbar(args)
+    ret.progress = wibox.widget.progressbar(args)
 
     ret.progress.x = args.x or 0
     ret.progress.y = args.y or 0
@@ -38,6 +37,11 @@ local function new(args)
         local h = args.height or height
         cr:save()
         cr:translate(ret.progress.x, ret.progress.y)
+        if args.vertical then
+          cr:rotate(math.pi * 3 / 2)
+          cr:translate(-h, 0)
+          w,h = h,w
+        end
         draw_progress(ret.progress, wibox, cr, w, h)
         cr:restore()
         if not img_first then draw_image(box, wibox, cr, width, height) end

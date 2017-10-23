@@ -7,12 +7,11 @@
 local wallpaper = { mt = {} }
 
 local floor = math.floor
-local span = require("uzful.widget.span")
 local wibox = require("wibox")
 local awful = require("awful")
 local gears = require("gears")
 local cairo = require("lgi").cairo
-local posix = require('posix')
+local _,posix = pcall(require, 'posix')
 local naughty = require('naughty')
 local awful = require("awful")
 local util = require("uzful.util")
@@ -49,7 +48,7 @@ function wallpaper.select_wallpaper(item)
     -- returns a string for the image
     -- if it's a random entry, select one file of the directory
     if item and type(item) == 'table' and item.random then
-        if posix.stat(item[1], "type") ~= 'directory' then
+        if posix and posix.stat(item[1], "type") ~= 'directory' then
             naughty.notify { title = "Error loading wallpaper: " .. item[1], text = 'random entries need to be a directory', timeout = 0 }
         else
             local all_files = util.scandir(item[1])
@@ -80,9 +79,7 @@ end
 
 function wallpaper.set_wallpaper(item, screen)
     local fun = "maximized"
-    if not target then
-        target = wallpaper.select_wallpaper(item)
-    end
+    local target = wallpaper.select_wallpaper(item)
     if not target then
       -- select wallpaper gives appropriate feedback
       return
@@ -145,7 +142,7 @@ end
 function wallpaper.fixentry(parent, args)
     args = args or {}
     local item = awful.menu.entry(parent, args)
-    item.widget = span({widget = item.widget, height = args.height})
+    item.widget = wibox.container.constraint(item.widget, args.width, args.height)
     item.height = args.height
     return item
 end

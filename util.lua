@@ -131,7 +131,7 @@ util.listen = {
         local mname = "text" == slot and "markup" or slot
         ret = {}
         ret["set_" .. mname] = function (_, value)
-                if value == old_value then return end
+                if value == nil or value == old_value then return end
                 old_value = value
                 callback(value)
             end
@@ -230,10 +230,9 @@ util.scan = {
 -- @param off when set_value invoked and value &lt; threshold then this function is called
 -- @return a table with property: set_value (similar to widget:set_value)
 function util.threshold(threshold, on, off)
-    local old_value = -1
     return util.listen.vicious("value", function (value)
-            if value < threshold then off(value) else on(value) end
-        end )
+        if value < threshold then off(value) else on(value) end
+    end)
 end
 
 --- Change system volume
@@ -356,5 +355,12 @@ function util.scandir(directory)
     return t
 end
 
+function util.pread(cmd)
+    local f = io.popen(cmd)
+    if not f then return "" end
+    local out = f:read("a")
+    f:close()
+    return out
+end
 
 return util

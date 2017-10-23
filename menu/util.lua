@@ -85,29 +85,26 @@ end
 function util.tag_info(opts)
     opts = opts or {}
     local tagstatus = function ()
-        local ncol = awful.tag.getncol()
-        local nmaster = awful.tag.getnmaster()
-        local mwfact = awful.tag.getmwfact() * 100
+        local tag = awful.screen.focused().selected_tag
         naughty.notify({ text = string.format(
-            "master width factor is now %d%%\nnmaster is now %d\nncol is now %d",
-            mwfact, nmaster, ncol
+            "master width factor is now %d%%\nmaster count is now %d\ncolumn count is now %d",
+            tag.master_width_factor * 100, tag.master_count, tag.column_count
         )})
     end
     return { theme = opts.theme,
         { "status", tagstatus },
         { "invert master width factor", function ()
-            awful.tag.setmwfact(1 - awful.tag.getmwfact())
+            local tag = awful.screen.focused().selected_tag
+            tag.master_width_factor = 1 - tag.master_width_factor
             naughty.notify({ text = string.format(
-                "master width factor is now %d%%", awful.tag.getmwfact() * 100
+                "master width factor is now %d%%", tag.master_width_factor * 100
             )})
         end },
         { "swap column master", function ()
-            local ncol = awful.tag.getncol()
-            local nmaster = awful.tag.getnmaster()
-            awful.tag.setnmaster(ncol)
-            awful.tag.setncol(nmaster)
+            local tag = awful.screen.focused().selected_tag
+            tag.column_count, tag.master_count = tag.master_count, tag.column_count
             naughty.notify({ text = string.format(
-                "nmaster is now %d\nncol is now %d", nmaster, ncol
+                "master count is now %d\ncolumn count is now %d", tag.master_count, tag.column_count
             )})
         end },
         { "reset", function ()

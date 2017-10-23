@@ -36,11 +36,11 @@ local function new(args)
     local ret = {}
     ret.widget = uzful.widget.progressimage({
         image = args.theme.unknown,
-        draw_image_first = false,
+        draw_image_first = false, vertical = true,
         x = args.x, y = args.y, width = args.width, height = args.height })
     uzful.widget.set_properties(ret.widget.progress, {
         ticks = true, ticks_gap = 1,  ticks_size = 1,
-        vertical = true, background_color = args.bgcolor,
+        background_color = args.bgcolor,
         border_color = nil, color = args.color })
     if args.text ~= false then
         ret.text = wibox.widget.textbox()

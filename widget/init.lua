@@ -8,7 +8,6 @@ local util = require("uzful.widget.util")
 
 return {
     repl = require("uzful.widget.repl"),
-    span = require("uzful.widget.span"),
     wicd = require("uzful.widget.wicd"),
     mpris = require("uzful.widget.mpris"),
     syslog = require("uzful.widget.syslog"),

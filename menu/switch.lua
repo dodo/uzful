@@ -41,9 +41,9 @@ function switch.filter(opts)
     return { menu_filter_text(), function (m)
         opts.filter.next()
         m.label:set_text(menu_filter_text())
-        -- update menu filters
+        -- force update menu filters
         for s = 1, capi.screen.count() do
-            tags[s][1].name = tags[s][1].name
+            capi.screen[s].tags[1].name = capi.screen[s].tags[1].name
         end
         return true -- dont close menu
     end,
@@ -53,7 +53,7 @@ function switch.filter(opts)
 end
 
 
-function switch.numbered_tag_names(tags, opts)
+function switch.numbered_tag_names(opts)
     opts = opts or {}
     opts.names = opts.names or {}
     opts.label = opts.label or {}
@@ -67,7 +67,7 @@ function switch.numbered_tag_names(tags, opts)
     if opts.numbered == nil then opts.numbered = #opts.names > 0 end
     if opts.numbered then
         for s = 1, capi.screen.count() do
-            for i, t in ipairs(tags[s]) do
+            for i, t in ipairs(capi.screen[s].tags) do
                 t.name = tostring(i)
             end
         end
@@ -75,7 +75,7 @@ function switch.numbered_tag_names(tags, opts)
     return { menu_tags_text(), function (m) -- this is a menu entry
         opts.numbered = not opts.numbered
         for s = 1, capi.screen.count() do
-            for i, t in ipairs(tags[s]) do
+            for i, t in ipairs(capi.screen[s].tags) do
                 t.name = not opts.numbered and opts.names[i] or tostring(i)
             end
         end

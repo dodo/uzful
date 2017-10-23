@@ -11,6 +11,5 @@ return {
     layout = require("uzful.layout"),
     widget = require("uzful.widget"),
     getinfo = require("uzful.getinfo"),
-    restore = require("uzful.restore"),
     notifications = require("uzful.notifications"),
 }

@@ -106,6 +106,7 @@ local function new(args)
         args.font = "monospace " .. tostring(args.font)
     end
     local ret = {}
+    ret.screen = args.screen or 1
     ret.month = args.month or os.date('%m')
     ret.year = args.year or os.date('%Y')
     ret.start = args.start or 2
@@ -119,7 +120,7 @@ local function new(args)
         ret.text = helper.format(args.all or "$1", {ret.text})
         ret.widget:set_markup(ret.text)
         ret.widget:set_font(args.font)
-        ret.width, ret.height = ret.widget:fit(-1, -1)
+        ret.width, ret.height = ret.widget:get_preferred_size(ret.screen)
     end
     ret:update()
     ret.switch_month = calendar.switch_month

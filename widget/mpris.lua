@@ -285,24 +285,21 @@ function mpris.menu.progressbar(parent, args)
         width = args.width,
     }
     ret.timer = capi.timer({ timeout = args.timeout })
-    ret.progress = awful.widget.progressbar({
-        height = ret.height,
-        width  = ret.width,
-    })
+    ret.progress = wibox.widget.progressbar()
     ret.progress:set_background_color('#000000') -- FIXME
     ret.progress:set_color(parent.theme.fg_normal)
-    ret.widget = ret.progress
+    ret.widget = wibox.container.constraint(ret.progress, 'exact', ret.width, ret.height)
     ret.update = false
     ret.show = function ()
         ret.width = args.width
-        ret.progress:set_width(ret.width)
+        ret.widget:set_width(ret.width)
         if ret.update then
             ret.timer:again()
         end
     end
     ret.hide = function ()
         ret.width = 0
-        ret.progress:set_width(ret.width)
+        ret.widget:set_width(ret.width)
         if ret.update then
             if ret.timer.data.source_id ~= nil then
                 ret.timer:stop()
@@ -339,13 +336,14 @@ end
 function mpris.menu.label(parent, args)
     args = args or {}
     local ret = { akey = '', flags = {} }
+    ret.screen = args.screen or 1
     ret.widget = wibox.widget.textbox()
     ret.label = ret.widget
     ret.label:set_font(parent.theme.font)
     local set_text = ret.label.set_text
     ret.label.set_text = function (...)
         set_text(...)
-        ret.width, ret.height = ret.label:fit(-1, parent.theme.height)
+        ret.width, ret.height = ret.label:get_preferred_size(ret.screen)
         ret.width = math.min(1000, ret.width)
         if parent.wibox.visible then
             parent:show({ coords = parent })

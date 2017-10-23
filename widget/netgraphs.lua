@@ -12,7 +12,6 @@ local _, vicious = pcall(require, "vicious")
 local _, helpers = pcall(require, "vicious.helpers")
 local uzful = { widget = { bandgraph = require("uzful.widget.bandgraph") } }
 local widget = require("uzful.widget.util")
-local layout = require("uzful.layout.util")
 local getinfo = require("uzful.getinfo")
 local beautiful = require("beautiful")
 
@@ -46,7 +45,7 @@ local default_net_colors = { fg = {down = "#00FF0099", up = "#FF000099"},
 -- @param args.theme <i>(optional) </i> defaults to beautiful.get()
 -- @return a table  with this properties: small <i>(when `args.small` given)</i> (with properties: layout, widgets, width, height), big <i>(wher `args.big` given)</i> (with properties: layout, widgets, width, height), switch <i>(when `args.big` and `args.small` are given)</i>
 local function new(args)
-    local ret = {}
+    local ret = {screen = args.screen or 1}
     for _, size in ipairs({"small", "big"}) do
         if args[size] then
             for _, typ in ipairs({"down", "up"}) do
@@ -99,12 +98,8 @@ local function new(args)
 
         ret.small = {
             widgets = small_widgets,
-            layout = layout.build({
-                widget = small,
-                reflection = {
-                    vertical = (args.direction == "right"),
-                },
-                layout = wibox.layout.mirror,
+            layout = wibox.container.mirror(small, {
+                 horizontal = (args.direction == "right"),
             }),
             height = args.small.height,
             width = args.small.widgth }
@@ -161,14 +156,14 @@ local function new(args)
                 for i, interface in ipairs(network_interfaces) do
                     if netdata["{"..interface.." carrier}"] == 1 then
                         table.insert(active, interface)
-                        local _, h = labels[interface]:fit(-1, -1)
+                        local _, h = labels[interface]:get_preferred_size(ret.screen)
                         height = height + h + big_geometry.height * 2
                         big:add(labels[interface])
                         big:add(big_graphs[interface])
                         vicious.activate(big_widgets[(i - 1) * 2 + 1])
                         vicious.activate(big_widgets[(i - 1) * 2 + 2])
                     else
-                        local _, h = labels[interface]:fit(-1, -1)
+                        local _, h = labels[interface]:get_preferred_size(ret.screen)
                         height = height + h
                         big:add(labels[interface])
                         vicious.unregister(big_widgets[(i - 1) * 2 + 1], true)
@@ -186,16 +181,16 @@ local function new(args)
             local label = wibox.widget.textbox()
             label:set_markup(if_text(interface))
             if args.font then  label:set_font(args.font)  end
-            local _, h = label:fit(-1, -1)
+            local _, h = label:get_preferred_size(ret.screen)
             height = height + h
             labels[interface] = label
-            local background = wibox.widget.background()
+            local background = wibox.container.background()
             background:set_widget(label)
             set_color(background, interface)
             big:add(background)
             backgrounds[interface] = background
-            local mirror = wibox.layout.mirror()
-            mirror:set_reflection({ vertical = (args.direction == "right") })
+            local mirror = wibox.container.mirror()
+            mirror:set_reflection({ horizontal = (args.direction == "right") })
             big_graphs[interface] = mirror
             local graphs = wibox.layout.fixed.vertical()
             for _, typ in ipairs({"down", "up"}) do

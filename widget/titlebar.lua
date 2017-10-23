@@ -327,7 +327,7 @@ local function new(c, args)
 end
 
 
-capi.client.add_signal("property::titlebar")
+--capi.client.add_signal("property::titlebar")
 
 local update_titlebars = function(tag)
     for _, c in ipairs(tag:clients()) do

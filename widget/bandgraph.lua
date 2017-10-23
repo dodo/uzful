@@ -120,7 +120,10 @@ function graph.draw(_graph, wibox, cr, width, height)
     end
 end
 
-function graph.fit(_graph, width, height)
+function graph.get_preferred_size(_graph, screen)
+    return data[_graph].width, data[_graph].height
+end
+function graph.fit(_graph, context, width, height)
     return data[_graph].width, data[_graph].height
 end
 
@@ -202,6 +205,7 @@ local function new(args)
     _graph.add_value = add_value
     _graph.draw = graph.draw
     _graph.fit = graph.fit
+    _graph.get_preferred_size = graph.get_preferred_size
 
     for _, prop in ipairs(properties) do
         _graph["set_" .. prop] = graph["set_" .. prop]

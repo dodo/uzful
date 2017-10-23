@@ -65,16 +65,19 @@ function battery.phone(args)
     end
     -- phone status via kdeconnect
     ret.widget = uzful.widget.hidable(uzful.widget.progressimage({
-        image = args.theme.battery,
+        image = args.theme.battery, vertical = true,
         x = args.x, y = args.y, width = args.width, height = args.height }))
     uzful.widget.set_properties(ret.widget.progress, {
         ticks = true, ticks_gap = 1,  ticks_size = 1,
-        vertical = true, background_color = args.normal,
+        background_color = args.normal,
         border_color = nil, color = args.color })
+    ret.widget.hide()
     -- test if kdeconnect is on
     kdeconnect.call('device', 'forceOnNetworkChange', function (err)
         if err then
             ret.widget.hide()
+        else
+            ret.widget.show()
         end
     end)
     ret.ticks = uzful.util.threshold(args.threshold.full or 0.9,
@@ -103,6 +106,7 @@ function battery.phone(args)
         end,
     })
     local function change_state(state)
+        ret.widget.show()
         ret.charging = (state == true)
         ret.widget.progress:set_background_color(ret.charging and args.charge or args.normal)
         ret:set_text(ret.ticks:get_value())
@@ -186,10 +190,10 @@ local function new(args)
         subsystem = "power_supply"}).length > 0)
     ret.widget = uzful.widget.progressimage({
         image = battery_online and (dock_online and args.theme.dock or args.theme.battery) or args.theme.nobattery,
-        x = args.x, y = args.y, width = args.width, height = args.height })
+        x = args.x, y = args.y, width = args.width, height = args.height, vertical = true })
     uzful.widget.set_properties(ret.widget.progress, {
         ticks = true, ticks_gap = 1,  ticks_size = 1,
-        vertical = true, background_color = power_supply_online and args.charge or args.normal,
+        background_color = power_supply_online and args.charge or args.normal,
         border_color = nil, color = args.color })
 
    ret.ticks = uzful.util.threshold(args.threshold.full or 0.9,
