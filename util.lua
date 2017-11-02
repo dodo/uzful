@@ -18,11 +18,13 @@ local capi = {
 
 local udev, ud = nil, nil
 local function initudev()
-    if udev then return true end
+    if udev then return not not ud end
     if not util.module.exists('udev') then return false end
-    udev = require("udev") -- https://github.com/dodo/lua-udev
+    local ok = false
+    ok, udev = pcall(require, "udev") -- https://github.com/dodo/lua-udev
+    if not ok then return false end
     ud = udev()
-    return true
+    return not not ud
 end
 
 local socket = nil
