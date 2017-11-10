@@ -26,7 +26,7 @@ function battery.set_text(bat, percentage)
             bat.name or '',
             bat.name and '  ' or '',
             bat.charging and '+' or '−',
-            percentage * 100
+            math.floor(percentage * 100)
         ))
     end
 end

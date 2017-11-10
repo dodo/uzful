@@ -357,10 +357,11 @@ function util.scandir(directory)
     return t
 end
 
+local wholefile = tonumber(string.match(_VERSION, "Lua (%d.%d)")) < 5.3 and "*a" or "a"
 function util.pread(cmd)
     local f = io.popen(cmd)
     if not f then return "" end
-    local out = f:read("a")
+    local out = f:read(wholefile)
     f:close()
     return out
 end
