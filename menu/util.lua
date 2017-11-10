@@ -108,7 +108,7 @@ function util.tag_info(opts)
             )})
         end },
         { "reset", function ()
-            uzful.layout.util.reset()
+            uzful.layout.util.reset(opts.default, nil, opts.layouts)
             tagstatus()
         end },
     }
